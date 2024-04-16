@@ -5,12 +5,12 @@
 # Notes:
 # -------------------------------------
 
-library(tictoc)
 library(data.table)
 library(lubridate)
 
 # read surgery claims
-claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims_exclude_opioids.rds")
+claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims_with_opioids.rds")
+setDT(claims)
 
 dts_cohort <- readRDS("/mnt/general-data/disability/create_cohort/intermediate/tafdedts/nest_dts.rds")
 setDT(dts_cohort)
@@ -26,7 +26,7 @@ dts_cohort <- dts_cohort[BENE_ID %in% claims$BENE_ID]
 # who to exclude based on continuous enrollment criteria
 
 # tic()
-claims$continuously_enrolled <- (sapply(1:nrow(claims), function(i) {
+claims$cohort_exclusion_noncontinuous <- (sapply(1:nrow(claims), function(i) {
   # find claims where claims$BENE_ID %in% small_cohort$BENE_ID
   enrollment_start <- claims[[i,"LINE_SRVC_BGN_DT"]] %m-% months(6)
 
@@ -48,7 +48,7 @@ claims$continuously_enrolled <- (sapply(1:nrow(claims), function(i) {
 
     # end of row - enrollment_start  > 6
     if (x[j,"ENRLMT_END_DT"] - enrollment_start > months(6)) {
-      return (1) # date
+      return (0) # date
     } else if (nrow(x) > j) {
       # 3 things:
       # need a next row
@@ -57,14 +57,15 @@ claims$continuously_enrolled <- (sapply(1:nrow(claims), function(i) {
       
       if (x[j+1,"ENRLMT_START_DT"] == x[j,"ENRLMT_END_DT"] + 1 &
           x[j+1,"ENRLMT_END_DT"] - enrollment_start > months(6)) {
-        return (1)
+        return (0)
       }
     }
   }
-  return (0)
+  return (1)
   
 }))
 
 # toc()
 
-saveRDS(claims, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims_exclude_noncontinuous.rds")
+claims <- claims[, c("CLM_ID", "cohort_exclusion_noncontinuous")]
+saveRDS(claims, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/cohort_exclusion_noncontinuous.rds")

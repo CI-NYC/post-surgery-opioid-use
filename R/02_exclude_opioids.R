@@ -1,7 +1,7 @@
 # -------------------------------------
 # Script: exclusion_opioids
 # Author: Anton Hung
-# Purpose: exlucde beneficiaries based on opioid prescription criteria
+# Purpose: exclude beneficiaries based on opioid prescription criteria
 # Notes:
 # -------------------------------------
 library(lubridate)
@@ -15,6 +15,7 @@ library(yaml)
 
 # intermediate claims data
 claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
+setDT(claims)
 
 # otl and rxl data for finding opioid claims
 src_root <- "/mnt/processed-data/disability"
@@ -36,12 +37,13 @@ op <- readRDS(file.path("/mnt/general-data/disability/mediation_unsafe_pain_mgmt
 # OTL ---------------------------------------------------------------------
 
 # Filter OTL to opioid pain NDC
-otl_vars <- c("BENE_ID", "CLM_ID", "LINE_SRVC_BGN_DT", "LINE_SRVC_END_DT", "NDC", "NDC_QTY")
+otl_vars <- c("BENE_ID", "CLM_ID", "LINE_SRVC_BGN_DT", "LINE_SRVC_END_DT", "NDC", "NDC_QTY", "TOS_CD")
 
 otl <- select(otl, all_of(otl_vars)) |> 
   filter(NDC %in% op$NDC) |>
   collect() |> 
   filter(BENE_ID %in% claims$BENE_ID) |>
+  filter(!TOS_CD == "001") |>
   as.data.table()
 
 otl[, LINE_SRVC_BGN_DT := fifelse(is.na(LINE_SRVC_BGN_DT), 
@@ -50,7 +52,7 @@ otl[, LINE_SRVC_BGN_DT := fifelse(is.na(LINE_SRVC_BGN_DT),
 
 # RXL ---------------------------------------------------------------------
 
-rxl_vars <- c("BENE_ID", "CLM_ID", "RX_FILL_DT", "NDC", "NDC_QTY", "DAYS_SUPPLY")
+rxl_vars <- c("BENE_ID", "CLM_ID", "RX_FILL_DT", "NDC", "NDC_QTY", "DAYS_SUPPLY", "TOS_CD")
 
 rxl <- select(rxl, all_of(rxl_vars)) |> 
   filter(NDC %in% op$NDC) |>
@@ -64,15 +66,22 @@ opioid_exclude <- function(id, surgery_dt, discharge_dt, opioid_otl, opioid_rxl)
   opioid_dates <- c(opioid_otl[BENE_ID == id, LINE_SRVC_BGN_DT], 
                     opioid_rxl[BENE_ID == id, RX_FILL_DT])
   
-  return (any(opioid_dates %within% interval(surgery_dt %m-% months(1), discharge_dt + days(14))) &&
-            !any(opioid_dates %within% interval(surgery_dt %m-% months(6), surgery_dt %m-% months(1))))
+  return (any(opioid_dates %within% interval(surgery_dt %m-% months(6), surgery_dt %m-% months(1))))
 }
 
-surgeries_to_keep <- sapply(1:nrow(claims), function(i) {
+surgeries_to_exclude <- sapply(1:nrow(claims), function(i) {
   opioid_exclude(claims$BENE_ID[i], claims$LINE_SRVC_BGN_DT[i], claims$LINE_SRVC_END_DT[i], otl, rxl)
 })
 
-claims_to_keep <- claims[surgeries_to_keep,]
 
-saveRDS(claims_to_keep, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims_exclude_opioids.rds")
+cohort_exclusion_opioids <- claims[, "CLM_ID"] |>
+  mutate(cohort_exclusion_opioids = as.numeric(surgeries_to_exclude))
+
+saveRDS(cohort_exclusion_opioids, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/cohort_exclusion_opioids.rds")
+
+
+# tmp <- (otl[TOS_CD=="001"]) |>
+#   mutate(new = difftime(LINE_SRVC_END_DT,LINE_SRVC_BGN_DT))
+
+# confirmed they are all single-day opioids
 

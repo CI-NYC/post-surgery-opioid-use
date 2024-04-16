@@ -1,24 +1,20 @@
 # -------------------------------------
-# Script: exclude OD
+# Script: exclude_oud
 # Author: Anton Hung
-# Purpose: creating exclusion variable for beneficiaries who have a history of OD during the 6 months continuous enrollment period prior to surgery
+# Purpose: exclude beneficiaries on the basis of having pre-existing OUD. Defined as
+#           OUD within the 6-month pre-operative period using the hillary method
 # Notes:
 # -------------------------------------
 
-library(data.table)
-library(lubridate)
-
-# load all the people
 cohort <- readRDS("/mnt/general-data/disability/create_cohort/final/joined_df.rds")
 setDT(cohort)
-cohort <- cohort[,.(BENE_ID, oud_poison_dt)]
+# cohort <- cohort[,.(BENE_ID, oud_poison_dt)]
 
-# load all the surgeries
-claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
+oud_hillary <- readRDS("projects/create_cohort/data/final/oud_hillary.rds")
 setDT(claims)
 
-# join surgery dates to overdose dates
-claims <- merge(claims, cohort, by="BENE_ID", all.x=T)
+# join oud to overdose dates
+cohort <- merge(cohort, oud_hillary, by="BENE_ID", all.x=T)
 claims <- unique(claims)
 
 # exclude OD

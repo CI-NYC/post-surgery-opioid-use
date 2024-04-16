@@ -31,7 +31,7 @@ codes <- c(names(codes[[variable]]$CPT),
            names(codes[[variable]]$CCS))
 
 # Filter OTL to claims codes
-claims_vars <- c("BENE_ID", "CLM_ID", "LINE_SRVC_BGN_DT", "LINE_SRVC_END_DT", "LINE_PRCDR_CD_SYS", "LINE_PRCDR_CD", "TOS_CD")
+claims_vars <- c("BENE_ID", "CLM_ID", "LINE_SRVC_BGN_DT", "LINE_SRVC_END_DT", "LINE_PRCDR_CD_SYS", "LINE_PRCDR_CD")
 claims <- select(otl, all_of(claims_vars)) |>
   filter(LINE_PRCDR_CD %in% codes) |>
   filter(!is.na(BENE_ID)) |>
@@ -55,7 +55,8 @@ claims <- claims |>
          LINE_SRVC_END_DT = max(LINE_SRVC_END_DT),
          LINE_PRCDR_CD_SYS = last(LINE_PRCDR_CD_SYS),
          LINE_PRCDR_CD = last(LINE_PRCDR_CD)) |> # taking the last procedure that they got under that claim ID
-  distinct()
+  distinct() |>
+  ungroup()
   
 
 
