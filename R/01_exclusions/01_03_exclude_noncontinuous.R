@@ -9,8 +9,9 @@ library(data.table)
 library(lubridate)
 
 # read surgery claims
-claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims_with_opioids.rds")
+claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
 setDT(claims)
+# claims <- claims[1:1000]
 
 dts_cohort <- readRDS("/mnt/general-data/disability/create_cohort/intermediate/tafdedts/nest_dts.rds")
 setDT(dts_cohort)
@@ -27,15 +28,18 @@ dts_cohort <- dts_cohort[BENE_ID %in% claims$BENE_ID]
 
 # tic()
 claims$cohort_exclusion_noncontinuous <- (sapply(1:nrow(claims), function(i) {
+  if (i %in% c(281671, 281672, 281673, 281674)){ # for some reason, these rows belong to a beneficiary: HHHHHHBdkH77Ad7, who does not exist in nest_dts.rds
+    return (1)
+  }
   # find claims where claims$BENE_ID %in% small_cohort$BENE_ID
-  enrollment_start <- claims[[i,"LINE_SRVC_BGN_DT"]] %m-% months(6)
+  enrollment_start <- claims[[i,"washout_start_dt"]]
 
   x <- dts_cohort[BENE_ID == claims[[i,"BENE_ID"]]]$data |>
     as.data.frame()
 
   continue = F
   for (j in 1:nrow(x)) {
-    if (enrollment_start %within% interval(x[j,"ENRLMT_START_DT"], x[j,"ENRLMT_END_DT"])){
+    if (enrollment_start %within% interval(x[[j,"ENRLMT_START_DT"]], x[[j,"ENRLMT_END_DT"]])){
       continue = T
       # keeps track of j automatically (the row where our first enrollment period of interest begins)
       next
@@ -47,7 +51,7 @@ claims$cohort_exclusion_noncontinuous <- (sapply(1:nrow(claims), function(i) {
     # return(1)
 
     # end of row - enrollment_start  > 6
-    if (x[j,"ENRLMT_END_DT"] - enrollment_start > months(6)) {
+    if (x[[j,"ENRLMT_END_DT"]] - enrollment_start > months(6)) {
       return (0) # date
     } else if (nrow(x) > j) {
       # 3 things:
@@ -55,8 +59,8 @@ claims$cohort_exclusion_noncontinuous <- (sapply(1:nrow(claims), function(i) {
       # need the next row to be continuous with the current row
       # need the next row's end date to be at least 6 months after enrollment_start 
       
-      if (x[j+1,"ENRLMT_START_DT"] == x[j,"ENRLMT_END_DT"] + 1 &
-          x[j+1,"ENRLMT_END_DT"] - enrollment_start > months(6)) {
+      if (x[[j+1,"ENRLMT_START_DT"]] == x[[j,"ENRLMT_END_DT"]] + 1 &
+          x[[j+1,"ENRLMT_END_DT"]] - enrollment_start > months(6)) {
         return (0)
       }
     }
@@ -67,5 +71,5 @@ claims$cohort_exclusion_noncontinuous <- (sapply(1:nrow(claims), function(i) {
 
 # toc()
 
-claims <- claims[, c("CLM_ID", "cohort_exclusion_noncontinuous")]
-saveRDS(claims, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/cohort_exclusion_noncontinuous.rds")
+claims <- claims[, c("BENE_ID", "CLM_ID", "cohort_exclusion_noncontinuous")]
+saveRDS(claims, "/mnt/general-data/disability/post_surgery_opioid_use/exclusion/cohort_exclusion_noncontinuous.rds")

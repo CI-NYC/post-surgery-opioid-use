@@ -68,4 +68,11 @@ claims <- claims |>
 # 2: HHHHHHHdA4nd4CA HHHHd4C7eAennB7       2018-08-30       2018-08-30                01         46945
 
 
+claims <- claims |>
+  rename(surgery_dt = LINE_SRVC_BGN_DT,
+         discharge_dt = LINE_SRVC_END_DT) |>
+  mutate(washout_start_dt = surgery_dt %m-% months(6)) |>
+  relocate(washout_start_dt, .before = surgery_dt)
+
+
 saveRDS(claims, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
