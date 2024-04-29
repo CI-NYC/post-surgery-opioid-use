@@ -6,57 +6,50 @@
 # -------------------------------------
 
 
-# Not sure how to proceed
-
+library(dplyr)
 library(lubridate)
-library(foreach)
-library(doFuture)
 library(tidyverse)
 
 cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
+  
+opioids <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/opioid_data/opioids_for_surgery.rds") |>
+  right_join(cohort[, c("CLM_ID", "surgery_dt", "discharge_dt")], by="CLM_ID")
 
-opioids <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/eligible_opioids.rds") |>
-  mutate(rx_int = interval(LINE_SRVC_BGN_DT, LINE_SRVC_END_DT)) |>
-  select(BENE_ID, rx_int) |>
-  group_by(BENE_ID) |> 
+
+opioids <- opioids |>
+  mutate(rx_int = interval(RX_FILL_DT, RX_FILL_DT %m+% days(DAYS_SUPPLY)),
+         rx_int = intersect(rx_int, interval(surgery_dt %m-% months(1), 
+                                             discharge_dt + days(15)))) |>
+  select(BENE_ID, rx_int) |> 
+  group_by(BENE_ID) |>
   arrange(BENE_ID, int_start(rx_int)) |> 
   nest()
 
-days_of_continuous_use <- function(data) { # unmodified so far
-  dur <- 0
+                     
+                     
+days_continuous <- function(data) {
+  out <- c()
   current_int <- data$rx_int[1]
   for (i in 1:nrow(data)) {
     check <- intersect(current_int, data$rx_int[i + 1])
-    if (is.na(check)) {
-      # if they don't intersect, add the duration of the first interval
-      dur <- dur + as.duration(current_int)
-      current_int <- data$rx_int[i + 1]
-    } else {
-      # if they do intersect, then update current interval as the union
+    if (!is.na(check)) {
       current_int <- union(current_int, data$rx_int[i + 1])
+     
+    } else {
+      out <- c(out, time_length(current_int, "days"))
+      current_int <- data$rx_int[i + 1]
     }
   }
-  dur
+  out
 }
 
-plan(multisession, workers = 50)
+opioids$days_of_continuous_use <- sapply(opioids$data, days_continuous)
 
-opioids$days_of_continuous_use <- 
-  foreach(x = opioids$data, 
-          .combine = "c",
-          .options.future = list(chunk.size = 1e4)) %dofuture% {
-            days_of_continuous_use(x)
-          }
+opioids <- opioids |>
+  select(BENE_ID, days_of_continuous_use)
 
-plan(sequential)
+saveRDS(opioids, "/mnt/general-data/disability/post_surgery_opioid_use/opioid_data/surgeries_opioids_days_continuous.rds")
 
-opioids <- select(cohort, BENE_ID) |> 
-  left_join(select(opioids, -data)) |> 
-  mutate(days_of_continuous_use = replace_na(days_of_continuous_use, 0))
-
-saveRDS(opioids, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/cohort_days_of_continuous_use.rds")
-
-
-
+# opioids$max_days <- sapply(opioids$days_of_continuous_use, max)
 
 

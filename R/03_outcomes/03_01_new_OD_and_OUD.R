@@ -9,18 +9,47 @@ library(data.table)
 library(lubridate)
 library(tidyverse)
 
-cohort <- readRDS("/mnt/general-data/disability/create_cohort/final/joined_df.rds") |>
-  select(BENE_ID, oud_hillary_dt, oud_poison_dt)
+all_poison <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/all_poison_dts.rds")
 
-surgeries <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds") |>
-  select(BENE_ID, LINE_SRVC_BGN_DT, LINE_SRVC_END_DT) |>
-  left_join(cohort, by = "BENE_ID") |>
+all_hillary <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/all_hillary_dts.rds")
+
+cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds") |>
+  select(BENE_ID, surgery_dt, discharge_dt) |>
   as.data.table()
 
 
-surgeries[, new_OUD := fifelse(oud_hillary_dt %within% interval(LINE_SRVC_END_DT, LINE_SRVC_END_DT %m+% years(2)), 1, 0)]
-surgeries <- surgeries |> mutate(new_OUD = replace_na(new_OUD, 0))
+# POISON
+poison_cohort <- left_join(cohort, all_poison, by="BENE_ID")
 
-surgeries[, new_OD := fifelse(oud_poison_dt %within% interval(LINE_SRVC_END_DT, LINE_SRVC_END_DT %m+% years(2)), 1, 0)]
-surgeries <- surgeries |> mutate(new_OD = replace_na(new_OD, 0))
+poison_cohort[, has_poison := 
+         as.numeric(oud_poison_dt > discharge_dt)] 
 
+poison_cohort <- poison_cohort |>
+  mutate(has_poison = case_when(is.na(has_poison) ~ 0, TRUE ~ has_poison), # converting NA to 0
+         oud_poison_dt = case_when(has_poison == 0 ~ NA, TRUE ~ oud_poison_dt)) |> # ineligible dates are masked
+  group_by(BENE_ID) |>
+  mutate(has_new_poison = as.numeric(any(has_poison == 1))) |>
+  arrange(oud_poison_dt) |>
+  slice(1) |>
+  ungroup() |>
+  select(BENE_ID, has_new_poison, oud_poison_dt)
+
+saveRDS(poison_cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_poison.rds")
+
+# HILLARY
+hillary_cohort <- left_join(cohort, all_hillary, by="BENE_ID")
+
+hillary_cohort[, has_hillary := 
+                as.numeric(oud_hillary_dt > discharge_dt)] 
+
+hillary_cohort <- hillary_cohort |>
+  mutate(has_hillary = case_when(is.na(has_hillary) ~ 0, TRUE ~ has_hillary), # converting NA to 0
+         oud_hillary_dt = case_when(has_hillary == 0 ~ NA, TRUE ~ oud_hillary_dt)) |> # ineligible dates are masked  
+  group_by(BENE_ID) |>
+  mutate(has_new_hillary = as.numeric(any(has_hillary == 1))) |>
+  arrange(oud_hillary_dt) |>
+  slice(1) |>
+  ungroup() |>
+  select(BENE_ID, has_new_hillary, oud_hillary_dt)
+
+saveRDS(hillary_cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_hillary.rds")

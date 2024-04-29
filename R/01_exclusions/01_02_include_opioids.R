@@ -82,7 +82,13 @@ claims_rxl_merged[, eligible_opioid :=
                     as.numeric(RX_FILL_DT %within% interval(surgery_dt %m-% months(1),
                                                             discharge_dt %m+% days(14)))] 
 
-opioids_for_surgery <- claims_rxl_merged[eligible_opioid==1, .(BENE_ID, CLM_ID, RX_FILL_DT, OPIOID_ID, NDC)]
+opioids_for_surgery <- claims_rxl_merged[eligible_opioid==1, .(BENE_ID, 
+                                                               CLM_ID, 
+                                                               OPIOID_ID, 
+                                                               RX_FILL_DT, 
+                                                               NDC, 
+                                                               NDC_QTY, 
+                                                               DAYS_SUPPLY)]
 
 saveRDS(opioids_for_surgery, "/mnt/general-data/disability/post_surgery_opioid_use/opioid_data/opioids_for_surgery.rds")
 
