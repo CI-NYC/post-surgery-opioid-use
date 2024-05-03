@@ -10,7 +10,7 @@ library(lubridate)
 library(dplyr)
 
 # load all the surgeries
-claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims_with_opioids.rds")
+claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
 setDT(claims)
 # cohort <- cohort[,.(BENE_ID, oud_poison_dt)]
 
@@ -19,7 +19,7 @@ setDT(oud_hillary)
 oud_hillary <- oud_hillary[, .(BENE_ID, oud_hillary_dt)]
 
 # join oud to overdose dates
-claims <- left_join(claims, oud_hillary, by="BENE_ID")
+claims <- left_join(claims, oud_hillary, by="BENE_ID", relationship = "many-to-many")
 
 # exclude OD
 # cohort_exclusion_oud_hillary <- claims[, .(cohort_exclusion_oud_hillary =
@@ -28,7 +28,7 @@ claims <- left_join(claims, oud_hillary, by="BENE_ID")
 #                                                          by = .(BENE_ID, CLM_ID)]
 
 
-claims[, has_hillary := as.numeric(oud_hillary_dt %within% interval(surgery_dt %m-% months(6), surgery_dt))] 
+claims[, has_hillary := as.numeric(oud_hillary_dt %within% interval(surgery_dt %m-% days(180), surgery_dt))] 
 
 cohort_exclusion_oud_hillary <- claims |>
   mutate(has_hillary = case_when(is.na(has_hillary) ~ 0, TRUE ~ has_hillary)) |>

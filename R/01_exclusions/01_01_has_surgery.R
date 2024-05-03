@@ -71,7 +71,7 @@ claims <- claims |>
 claims <- claims |>
   rename(surgery_dt = LINE_SRVC_BGN_DT,
          discharge_dt = LINE_SRVC_END_DT) |>
-  mutate(washout_start_dt = surgery_dt %m-% months(6)) |>
+  mutate(washout_start_dt = surgery_dt %m-% days(180)) |>
   relocate(washout_start_dt, .before = surgery_dt)
 
 

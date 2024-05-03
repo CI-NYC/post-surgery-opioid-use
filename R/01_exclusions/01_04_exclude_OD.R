@@ -34,7 +34,7 @@ claims <- left_join(claims, oud_poison_dt, by="BENE_ID", relationship = "many-to
 
 
 claims[, has_poison := 
-                    as.numeric(oud_poison_dt %within% interval(surgery_dt %m-% months(6), surgery_dt))] 
+                    as.numeric(oud_poison_dt %within% interval(surgery_dt %m-% days(180), surgery_dt))] 
 
 cohort_exclusion_oud_poison <- claims |>
   mutate(has_poison = case_when(is.na(has_poison) ~ 0, TRUE ~ has_poison)) |>

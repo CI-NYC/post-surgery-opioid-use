@@ -90,8 +90,8 @@ claims_rxl_merged <- left_join(claims, rxl, by="BENE_ID", relationship = "many-t
 #                                               by = .(BENE_ID, CLM_ID)]
 
 claims_rxl_merged[, ineligible_opioid := 
-                    as.numeric(RX_FILL_DT %within% interval(surgery_dt %m-% months(6),
-                                                            surgery_dt %m-% months(1)))] 
+                    as.numeric(RX_FILL_DT %within% interval(surgery_dt %m-% days(180),
+                                                            surgery_dt %m-% days(30)))] 
 
 cohort_exclusion_ineligible_opioid <- claims_rxl_merged |>
   mutate(ineligible_opioid = case_when(is.na(ineligible_opioid) ~ 0, TRUE ~ ineligible_opioid)) |>

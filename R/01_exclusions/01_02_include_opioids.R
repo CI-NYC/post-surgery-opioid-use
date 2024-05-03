@@ -79,7 +79,7 @@ rxl <- select(rxl, all_of(rxl_vars)) |>
 claims_rxl_merged <- left_join(claims, rxl, by="BENE_ID", relationship = "many-to-many")
 
 claims_rxl_merged[, eligible_opioid := 
-                    as.numeric(RX_FILL_DT %within% interval(surgery_dt %m-% months(1),
+                    as.numeric(RX_FILL_DT %within% interval(surgery_dt %m-% days(30),
                                                             discharge_dt %m+% days(14)))] 
 
 opioids_for_surgery <- claims_rxl_merged[eligible_opioid==1, .(BENE_ID, 
