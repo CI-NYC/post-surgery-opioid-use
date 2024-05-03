@@ -98,9 +98,9 @@ all_met_start_stop <-
   bind_cols(met_end_dts |> select(-BENE_ID)) |>
   mutate(moud_med = "met") |>
   select(BENE_ID, moud_med, everything())|>
-  left_join(surgeries |> select(BENE_ID, LINE_SRVC_BGN_DT)) |>
-  filter(!(moud_end_dt < LINE_SRVC_BGN_DT)) |> # filter out rows that end before washout period begins
-  select(-LINE_SRVC_BGN_DT)
+  left_join(surgeries |> select(BENE_ID, washout_start_dt)) |>
+  filter(!(moud_end_dt < washout_start_dt)) |> # filter out rows that end before washout period begins
+  select(-washout_start_dt)
 
 
 # met_intervals <-
@@ -127,10 +127,10 @@ all_met_start_stop <-
 #   group_by(BENE_ID) |>
 #   summarize(across(starts_with("oud_moud"), max)) # keep a row for each BENE_ID that denotes whether they had the drug in this period
 
-# all_met_intervals <- 
+# all_met_intervals <-
 #   dts_cohorts |>
 #   select(BENE_ID) |>
 #   left_join(met_intervals) |>
 #   mutate(across(contains("oud_moud"), ~ifelse(is.na(.x), 0, .x))) # replace missing data with zero (no met in that interval)
-# 
-saveRDS(all_met_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries_moud_met.rds")
+#
+saveRDS(all_met_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/moud_met.rds")

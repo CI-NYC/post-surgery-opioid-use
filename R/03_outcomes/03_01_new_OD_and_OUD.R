@@ -22,7 +22,7 @@ cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermed
 poison_cohort <- left_join(cohort, all_poison, by="BENE_ID")
 
 poison_cohort[, has_poison := 
-         as.numeric(oud_poison_dt > discharge_dt)] 
+         as.numeric(oud_poison_dt %within% interval(discharge_dt, discharge_dt %m+% years(2)))] 
 
 poison_cohort <- poison_cohort |>
   mutate(has_poison = case_when(is.na(has_poison) ~ 0, TRUE ~ has_poison), # converting NA to 0
@@ -40,7 +40,7 @@ saveRDS(poison_cohort, "/mnt/general-data/disability/post_surgery_opioid_use/out
 hillary_cohort <- left_join(cohort, all_hillary, by="BENE_ID")
 
 hillary_cohort[, has_hillary := 
-                as.numeric(oud_hillary_dt > discharge_dt)] 
+                as.numeric(oud_hillary_dt %within% interval(discharge_dt, discharge_dt %m+% years(2)))] 
 
 hillary_cohort <- hillary_cohort |>
   mutate(has_hillary = case_when(is.na(has_hillary) ~ 0, TRUE ~ has_hillary), # converting NA to 0

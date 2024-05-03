@@ -148,9 +148,9 @@ all_nal_start_stop <-
   bind_cols(all_nal_end_dts |> select(-BENE_ID)) |>
   mutate(moud_med = "nal") |>
   select(BENE_ID, moud_med, everything())|>
-  left_join(surgeries |> select(BENE_ID, LINE_SRVC_BGN_DT)) |>
-  filter(!(moud_end_dt < LINE_SRVC_BGN_DT)) |> # filter out rows that end before washout period begins
-  select(-LINE_SRVC_BGN_DT)
+  left_join(surgeries |> select(BENE_ID, washout_start_dt)) |>
+  filter(!(moud_end_dt < washout_start_dt)) |> # filter out rows that end before washout period begins
+  select(-washout_start_dt)
 
 # create interval indicators
 # nal_intervals <-
@@ -183,4 +183,4 @@ all_nal_start_stop <-
 #   left_join(nal_intervals) |>
 #   mutate(across(contains("oud_moud"), ~ifelse(is.na(.x), 0, .x))) # replace missing data with zero (no nal in that interval)
 
-saveRDS(all_nal_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries_moud_nal.rds")
+saveRDS(all_nal_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/moud_nal.rds")
