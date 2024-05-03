@@ -32,7 +32,7 @@ dts_cohorts <- readRDS(file.path(save_dir, "intermediate/first_surgeries.rds"))
 setDT(dts_cohorts)
 setkey(dts_cohorts, BENE_ID)
 
-all_opioids_clean <- readRDS(file.path(save_dir, "opioid_data/pain_opioids_cleaned.rds"))
+all_opioids_clean <- readRDS(file.path(save_dir, "opioid_data/opioids_for_surgery_cleaned.rds"))
 setDT(all_opioids_clean)
 setkey(all_opioids_clean, BENE_ID)
 # all_opioids_clean <- all_opioids_clean[, .(BENE_ID, NDC, opioid, mme_strength_per_day, rx_start_dt, rx_end_dt)]

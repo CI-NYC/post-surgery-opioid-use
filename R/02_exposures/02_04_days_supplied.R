@@ -11,11 +11,9 @@ library(doFuture)
 library(tidyverse)
 
 cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
-setDT(cohort)
 
 opioids <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/opioid_data/opioids_for_surgery.rds") |>
-  filter(CLM_ID %in% cohort$CLM_ID) |>
-  left_join(cohort[,.(BENE_ID, discharge_dt)]) |>
+  right_join(cohort[, c("CLM_ID", "surgery_dt", "discharge_dt")], by="CLM_ID") |>
   mutate(DAYS_SUPPLY = replace_na(DAYS_SUPPLY, 1),
          rx_int = interval(RX_FILL_DT, pmin(RX_FILL_DT %m+% days(DAYS_SUPPLY),
                                             discharge_dt %m+% days(15)))) |>
@@ -54,7 +52,7 @@ plan(sequential)
 
 opioids <- select(opioids, BENE_ID, days_supplied)
 
-saveRDS(opioids, "/mnt/general-data/disability/post_surgery_opioid_use/opioid_data/surgery_days_supplied.rds")
+saveRDS(opioids, "/mnt/general-data/disability/post_surgery_opioid_use/opioid_data/surgery_opioid_days_supplied.rds")
 
 
 # I capped the rx_int at surgery dt + 15. so a lot of prescriptions starting on the 13th, 14th, or 15th day have a "shortened" days supply result

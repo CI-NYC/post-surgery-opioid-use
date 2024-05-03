@@ -57,5 +57,5 @@ opioids <-
 
 opioids <- left_join(opioids, cohort[, .(BENE_ID, surgery_dt, discharge_dt)])
 
-saveRDS(opioids, file.path("/mnt/general-data/disability/post_surgery_opioid_use/opioid_data", "pain_opioids_cleaned.rds"))
+saveRDS(opioids, file.path("/mnt/general-data/disability/post_surgery_opioid_use/opioid_data", "opioids_for_surgery_cleaned.rds"))
 

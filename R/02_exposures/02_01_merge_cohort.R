@@ -15,8 +15,9 @@ claims <- readRDS(file.path(intermediate_dir, "surgery_claims.rds"))
 exclusion_poison <- readRDS(file.path(exclusion_dir, "cohort_exclusion_poison.rds"))
 exclusion_oud_hillary <- readRDS(file.path(exclusion_dir, "cohort_exclusion_hillary.rds"))
 exclusion_noncontinuous <- readRDS(file.path(exclusion_dir, "cohort_exclusion_noncontinuous.rds"))
-exclusion_eligible_opioid <- readRDS("cohort_exclusion_eligible_opioid.rds")
-exclusion_ineligible_opioid <- readRDS("cohort_exclusion_ineligible_opioid.rds")
+exclusion_eligible_opioid <- readRDS(file.path(exclusion_dir, "cohort_exclusion_eligible_opioid.rds"))
+exclusion_ineligible_opioid <- readRDS(file.path(exclusion_dir, "cohort_exclusion_ineligible_opioid.rds"))
+exclusion_surgery_duration <- readRDS(file.path(exclusion_dir, "cohort_exclusion_surgery_duration.rds"))
 exclusion_age <- readRDS("/mnt/general-data/disability/create_cohort/intermediate/tafdebse/cohort_exclusion_age.rds") |> 
   filter(BENE_ID %in% claims$BENE_ID) |>
   select(BENE_ID, cohort_exclusion_age)
@@ -30,6 +31,7 @@ joined_surgeries <- claims |>
   left_join(exclusion_ineligible_opioid, by = c("BENE_ID", "CLM_ID")) |>
   left_join(exclusion_poison, by = c("BENE_ID", "CLM_ID")) |>
   left_join(exclusion_oud_hillary, by = c("BENE_ID", "CLM_ID")) |>
+  left_join(exclusion_surgery_duration, by = c("BENE_ID", "CLM_ID")) |>
   left_join(exclusion_age, by = "BENE_ID")
 
 saveRDS(joined_surgeries, file.path(intermediate_dir, "joined_surgeries.rds")) # pre data cleaning
