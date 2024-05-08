@@ -32,8 +32,7 @@ $Y_t$ represents the outcome of i) OUD, ii) opioid overdose, and iii) MOUD initi
 |------------------------|------------|
 | MME                    | MME dose conversion is defined <a href="https://github.com/CI-NYC/post_surgery_opioid_use/blob/main/R/02_exposures/02_05_dose_mme.R#L38">here</a>  <p>The mean daily dose of MME is calculated here using the function "calculate_mean_daily_dose |
 | Days supplied          | Defined <a href="https://github.com/CI-NYC/post_surgery_opioid_use/blob/main/R/02_exposures/02_04_days_supplied.R#L25">here</a>
-| Days of continuous use | Defined <a href="https://github.com/CI-NYC/post_surgery_opioid_use/blob/main/R/02_exposures/02_07_days_of_continuous_use.R">here</a>  
-<p> Produces vectors for the lengths of all a beneficiary's periods of continuous use.                      |
+| Days of continuous use | Defined <a href="https://github.com/CI-NYC/post_surgery_opioid_use/blob/main/R/02_exposures/02_07_days_of_continuous_use.R">here</a> <p> Produces vectors for the lengths of all a beneficiary's periods of continuous use. |
 
 | Outcome | Definition |
 |---------|------------|
