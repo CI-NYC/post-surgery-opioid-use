@@ -18,6 +18,8 @@ dts_cohort <- readRDS("/mnt/general-data/disability/create_cohort/intermediate/t
 setDT(dts_cohort)
 
 dts_cohort <- dts_cohort[BENE_ID %in% claims$BENE_ID]
+claims <- claims[BENE_ID %in% dts_cohort$BENE_ID]
+
 # small_cohort <- dts_cohort[1:1000,]
 # small_claims <- claims[100001:101000,]
 
@@ -74,8 +76,7 @@ dts_cohort <- dts_cohort[BENE_ID %in% claims$BENE_ID]
 
 
 claims$cohort_exclusion_noncontinuous <- (sapply(1:nrow(claims), function(i) {
-  if (claims[[i, "BENE_ID"]] == "HHHHHHBdkH77Ad7") return(1)
-  
+
   # find claims where claims$BENE_ID %in% small_cohort$BENE_ID
   surgery_dt <- claims[[i,"surgery_dt"]]
   data <- dts_cohort[BENE_ID == claims[[i,"BENE_ID"]]]$data[[1]] |>
@@ -92,7 +93,7 @@ claims$cohort_exclusion_noncontinuous <- (sapply(1:nrow(claims), function(i) {
   
   q1 <- surgery_dt %within% interval(enrollment_date, enrollment_end)
   
-  q2 <- time_length(surgery_dt - enrollment_date, "days") >= 180
+  q2 <- time_length(surgery_dt - enrollment_date, "days") >= 182
   
   if (any(q1 & q2)) return(0)
   
@@ -104,7 +105,7 @@ claims$cohort_exclusion_noncontinuous <- (sapply(1:nrow(claims), function(i) {
   # q4 <- (interval(lag(enrollment_date), enrollment_end)) |>
   #   as.period() |>
   #   month() >= 6
-  q4 <- time_length(surgery_dt - lag(enrollment_date), "days") >= 180
+  q4 <- time_length(surgery_dt - lag(enrollment_date), "days") >= 182
   
   
   if (any(q1 & q3 & q4, na.rm = TRUE)) {

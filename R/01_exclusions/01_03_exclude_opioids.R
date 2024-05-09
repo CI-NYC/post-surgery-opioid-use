@@ -1,7 +1,7 @@
 # -------------------------------------
 # Script: exclusion_opioids
 # Author: Anton Hung
-# Purpose: exclude beneficiaries based on opioid prescription criteria
+# Purpose: exclude beneficiaries who have an opioid prescription from washout start to 1 month before surgery
 # Notes:
 # -------------------------------------
 library(lubridate)
@@ -9,9 +9,7 @@ library(dplyr)
 library(data.table)
 library(arrow)
 library(yaml)
-# criteria:
-# opioid prescribed during 1 month before surgery to 14 days after discharge
-# NO opioids prescribed during the 6 month washout prior to surgery
+
 
 # intermediate claims data
 claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
@@ -82,6 +80,9 @@ rxl <- select(rxl, all_of(rxl_vars)) |>
 # })
 # claims <- claims[, .(CLM_ID, cohort_exclusion_opioids)]
 
+
+
+# Matching opioid prescriptions to surgeries by beneficiary
 claims_rxl_merged <- left_join(claims, rxl, by="BENE_ID", relationship = "many-to-many")
 
 # cohort_exclusion_ineligible_opioids <- claims_rxl_merged[, .(cohort_exclusion_ineligible_opioids =
@@ -89,10 +90,13 @@ claims_rxl_merged <- left_join(claims, rxl, by="BENE_ID", relationship = "many-t
 #                                                                      interval(surgery_dt %m-% months(6), surgery_dt %m-% months(1))))), 
 #                                               by = .(BENE_ID, CLM_ID)]
 
+
+# which opioids were prescribed during the washout period (not including 30 day perioperative period)
 claims_rxl_merged[, ineligible_opioid := 
-                    as.numeric(RX_FILL_DT %within% interval(surgery_dt %m-% days(180),
+                    as.numeric(RX_FILL_DT %within% interval(washout_start_dt,
                                                             surgery_dt %m-% days(30)))] 
 
+# 
 cohort_exclusion_ineligible_opioid <- claims_rxl_merged |>
   mutate(ineligible_opioid = case_when(is.na(ineligible_opioid) ~ 0, TRUE ~ ineligible_opioid)) |>
   group_by(CLM_ID) |>

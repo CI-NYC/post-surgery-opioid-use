@@ -33,8 +33,9 @@ claims <- left_join(claims, oud_poison_dt, by="BENE_ID", relationship = "many-to
 #                                        by = .(BENE_ID, CLM_ID)]
 
 
+# finding beneficiaries who have an OUD poison dt during the washout period until the end of the perioperative period
 claims[, has_poison := 
-                    as.numeric(oud_poison_dt %within% interval(surgery_dt %m-% days(180), surgery_dt))] 
+                    as.numeric(oud_poison_dt %within% interval(washout_start_dt, discharge_dt %m+% days(14)))] 
 
 cohort_exclusion_oud_poison <- claims |>
   mutate(has_poison = case_when(is.na(has_poison) ~ 0, TRUE ~ has_poison)) |>

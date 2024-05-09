@@ -7,6 +7,8 @@
 library(data.table)
 library(dplyr)
 
+surgery_dt <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
+
 cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_months_to_dropout.rds")
 
 # custom_round <- function(x) {
@@ -22,9 +24,10 @@ cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes
 hillary_dat <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_hillary.rds") |>
   select(BENE_ID, oud_hillary_dt) |>
   filter(!is.na(oud_hillary_dt)) |>
+  left_join(surgery_dt[, c("BENE_ID", "surgery_dt")]) |>
   left_join(cohort[, c("BENE_ID", "discharge_dt", "enrolled_until")])
 
-for (month in 1:24){
+for (month in 0:24){
   censor_column <- paste0("C_", month)
   outcome_column <- paste0("Y_", month)
   hillary_dat <- hillary_dat |>
@@ -39,13 +42,15 @@ saveRDS(hillary_dat, "/mnt/general-data/disability/post_surgery_opioid_use/outco
 poison_dat <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_poison.rds") |>
   select(BENE_ID, oud_poison_dt) |>
   filter(!is.na(oud_poison_dt)) |>
+  left_join(surgery_dt[, c("BENE_ID", "surgery_dt")]) |>
   left_join(cohort[, c("BENE_ID", "discharge_dt", "enrolled_until")])
 
-for (month in 1:24){
-  new_column <- paste0("Y_", month)
+for (month in 0:24){
+  censor_column <- paste0("C_", month)
+  outcome_column <- paste0("Y_", month)
   poison_dat <- poison_dat |>
     mutate({{censor_column}} := case_when(enrolled_until <= discharge_dt %m+% months(month) ~ 1, TRUE ~ 0),
-           {{new_column}} := case_when(oud_poison_dt <= discharge_dt %m+% months(month) ~ 1, TRUE ~ 0))
+           {{outcome_column}} := case_when(oud_poison_dt <= discharge_dt %m+% months(month) ~ 1, TRUE ~ 0))
 }
 
 saveRDS(poison_dat, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/poison_wide.rds")

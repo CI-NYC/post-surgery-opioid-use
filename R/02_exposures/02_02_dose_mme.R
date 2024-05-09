@@ -1,13 +1,12 @@
 # -------------------------------------
-# Script:
-# Author:
-# Purpose:
+# Script: dose_mme
+# Author: Kat Hoffman and Nick Williams (modified by Anton Hung 05-2024)
+# Purpose: Calculating mme strength per day
+#          This is a portion of the script disability/projects/mediation_unsafe_pain_mgm/01_create_mediators/11_01_mediator_dose_mme.R
 # Notes:
 # -------------------------------------
 
 library(tidyverse)
-# library(janitor)
-# library(readxl)
 library(arrow)
 library(lubridate)
 library(data.table)

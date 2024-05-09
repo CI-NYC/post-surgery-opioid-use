@@ -1,7 +1,7 @@
 # -------------------------------------
 # Script: has_surgery
 # Author: Anton Hung
-# Purpose: Identify which individuals have an eligible surgery claim code
+# Purpose: Identify which beneficiaries have an eligible surgery claim code
 # Notes:
 # -------------------------------------
 library(dplyr)
@@ -10,13 +10,9 @@ library(arrow)
 library(yaml)
 library(lubridate)
 
-# cohort data
-# cohort <- readRDS("/mnt/general-data/disability/create_cohort/final/joined_df.rds")
-# cohort <- cohort[, "BENE_ID"]
 
 # claims data
 src_root <- "/mnt/processed-data/disability"
-# drv_root <- "/home/amh2389/medicaid"
 
 # Read in OTL (Other services line) 
 files <- paste0(list.files(src_root, pattern = "TAFOTL", recursive = TRUE))
@@ -44,34 +40,33 @@ claims <- select(otl, all_of(claims_vars)) |>
 
 # Decision:
 # grouping by claim ID, I set the start date to be the earliest date of any of the observations under the clm_ID, and the end date to be the latest date
-# I also set the procedure codes to be the last procedure. These do not play a role in the analysis, so it is just done to ensure that distinct() filters the data down to only the unique claims.
+# I also combine all the procedure codes belonging to the same CLAIM into a list
 
 # https://resdac.org/cms-data/variables/claim-line-number
 # clm ID can be duplicated across multiple different line_IDs
 # grouping each claim id, taking the minimum bgn dt and maximimum end dt
-claims <- claims |>
-  group_by(CLM_ID) |>
-  mutate(LINE_SRVC_BGN_DT = min(LINE_SRVC_BGN_DT),
-         LINE_SRVC_END_DT = max(LINE_SRVC_END_DT),
-         LINE_PRCDR_CD_SYS = last(LINE_PRCDR_CD_SYS),
-         LINE_PRCDR_CD = last(LINE_PRCDR_CD)) |> # taking the last procedure that they got under that claim ID
-  distinct() |>
-  ungroup()
-  
 
-
-# not done, there are some who differ on CODE
 # e.g.: 
 # BENE_ID          CLM_ID LINE_SRVC_BGN_DT LINE_SRVC_END_DT LINE_PRCDR_CD_SYS LINE_PRCDR_CD
 # <char>          <char>           <Date>           <Date>            <char>        <char>
 #   1: HHHHHHHdA4nd4CA HHHHd4C7eAennB7       2018-08-30       2018-08-30                01         46255
 # 2: HHHHHHHdA4nd4CA HHHHd4C7eAennB7       2018-08-30       2018-08-30                01         46945
 
+claims <- claims |>
+  group_by(CLM_ID) |>
+  mutate(LINE_SRVC_BGN_DT = min(LINE_SRVC_BGN_DT),
+         LINE_SRVC_END_DT = max(LINE_SRVC_END_DT),
+         LINE_PRCDR_CD_SYS = list(unique(LINE_PRCDR_CD_SYS)),
+         LINE_PRCDR_CD = list(unique(LINE_PRCDR_CD))) |> # combining all procedure codes into a list
+  distinct() |>
+  ungroup()
+  
 
+# calculate a washout period of 6 months before surgery
 claims <- claims |>
   rename(surgery_dt = LINE_SRVC_BGN_DT,
          discharge_dt = LINE_SRVC_END_DT) |>
-  mutate(washout_start_dt = surgery_dt %m-% days(180)) |>
+  mutate(washout_start_dt = surgery_dt %m-% days(182)) |>
   relocate(washout_start_dt, .before = surgery_dt)
 
 

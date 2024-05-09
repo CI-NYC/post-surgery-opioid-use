@@ -28,7 +28,8 @@ claims <- left_join(claims, oud_hillary, by="BENE_ID", relationship = "many-to-m
 #                                                          by = .(BENE_ID, CLM_ID)]
 
 
-claims[, has_hillary := as.numeric(oud_hillary_dt %within% interval(surgery_dt %m-% days(180), surgery_dt))] 
+# Identifying 
+claims[, has_hillary := as.numeric(oud_hillary_dt %within% interval(washout_start_dt, discharge_dt %m+% days(14)))] 
 
 cohort_exclusion_oud_hillary <- claims |>
   mutate(has_hillary = case_when(is.na(has_hillary) ~ 0, TRUE ~ has_hillary)) |>

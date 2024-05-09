@@ -45,7 +45,7 @@ cohort$enrolled_until <- as.Date(sapply(1:nrow(cohort), function(i) {
   # finding the last row that is continuous with the previous row
   
   # q2 <- (last_enrollment_end + days(1)) == enrollment_date
-  q2 <- (last_enrollment_end + days(60)) >= enrollment_date
+  q2 <- (last_enrollment_end + days(90)) >= enrollment_date
   
   q2[1:which(q1)] = T # setting all previous indices to T as a placeholder
   last_true_index <- ifelse(all(q2), length(q2), which.min(q2)-1) # finding the final consecutive continuous enrollment period after start_dt  
@@ -90,9 +90,9 @@ fit <- survfit(surv_obj ~ 1)
 
 pdf("/home/amh2389/medicaid/post_surgery_opioid_use/output/months_to_dropout.pdf")
 
-plot(fit, 
-     xlab = "Months elapsed", 
-     ylab = "Proportion remaining", 
+plot(fit,
+     xlab = "Months elapsed",
+     ylab = "Proportion remaining",
      main = "Proportion of beneficiaries still enrolled in Medicaid by month",
      xaxt = "n",
      col = "skyblue",

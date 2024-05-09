@@ -1,7 +1,8 @@
 # -------------------------------------
 # Script: get_hillary
 # Author: Anton Hung
-# Purpose:
+# Purpose: modification of 06_define_OUD_components/define_oud_hillary.R
+#          This script finds and saves all hillary OUD dates, not just the first one
 # Notes:
 # -------------------------------------
 

@@ -1,7 +1,7 @@
 # -------------------------------------
 # Script: exclusion_opioids
 # Author: Anton Hung
-# Purpose: exclude beneficiaries based on opioid prescription criteria
+# Purpose: include beneficiaries who received an opioid prescription between 30 days before surgery to 14 days after discharge
 # Notes:
 # -------------------------------------
 library(lubridate)
@@ -9,9 +9,7 @@ library(dplyr)
 library(data.table)
 library(arrow)
 library(yaml)
-# criteria:
-# opioid prescribed during 1 month before surgery to 14 days after discharge
-# NO opioids prescribed during the 6 month washout prior to surgery
+
 
 # intermediate claims data
 claims <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")

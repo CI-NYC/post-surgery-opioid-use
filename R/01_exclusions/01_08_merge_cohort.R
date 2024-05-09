@@ -53,6 +53,8 @@ saveRDS(cleaned_surgeries, file.path(intermediate_dir, "cleaned_surgeries.rds"))
 first_surgeries <- cleaned_surgeries |>
   group_by(BENE_ID) |>
   arrange(washout_start_dt) |>
-  slice(1)
+  slice(1) |>
+  mutate(followup_start_dt = discharge_dt %m+% days(14)) |>
+  relocate(followup_start_dt, .after = discharge_dt)
 
 saveRDS(first_surgeries, file.path(intermediate_dir, "first_surgeries.rds"))

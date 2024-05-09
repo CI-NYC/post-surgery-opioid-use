@@ -35,23 +35,18 @@ files <- paste0(list.files(src_root, pattern = "TAFOTL", recursive = TRUE))
 parquet_files <- grep("\\.parquet$", files, value = TRUE)
 otl <- open_dataset(file.path(src_root, parquet_files))
 
-best_otl <- read_rds(here("/mnt/general-data/disability/create_cohort/intermediate/tmp/best_otl.rds"))
+# Read in OTL (Other services line) 
+files <- paste0(list.files(src_root, pattern = "TAFRXL", recursive = TRUE))
+parquet_files <- grep("\\.parquet$", files, value = TRUE)
+otl <- open_dataset(file.path(src_root, parquet_files))
+
+best_otl <- readRDS(("/mnt/general-data/disability/create_cohort/intermediate/tmp/best_otl.rds"))
 best_rxl <- read_rds(here("/mnt/general-data/disability/create_cohort/intermediate/tmp/best_rxl_kept.rds"))
 best_list <- rbind
 
 dts_cohorts <- open_dataset("projects/create_cohort/data/tafdedts/dts_cohorts.parquet") |>
   collect() |> 
   mutate(index = rep(1:32, length.out=n()))
-
-td <- "/home/data/12201/" # directory of interest
-
-# Read in RXL (pharmacy line)
-files <- paste0(list.files(td, pattern = "TAFRXL", recursive = TRUE))
-rxl <- open_dataset(paste0(td, files), format="parquet")
-
-# read in OTL (other services line)
-files <- paste0(list.files(td, pattern = "TAFOTL", recursive = TRUE))
-otl <- open_dataset(paste0(td, files), format="parquet")
 
 
 # Filter RXL files by cohort ---------------------------------------------------------

@@ -2,15 +2,18 @@
 #
 #       Author: Sarah Forrest
 #      Created: 24 Aug 2023
-#  Last edited: 27 Jan 2024 (Nick)
+#       edited: 27 Jan 2024 (Nick)
+#  Last edited: 08 May 2024 (Anton Hung)
+
 # 
 #        Notes: Modified code originally written by Kat Hoffman and Nick
 #               Williams in the 0x_mediator_dose_mme.R script
 #        
-#       Output: A mediator dataset with the the maximum daily dose (MME) of 
+#       Output: A mediator dataset with the the mean daily dose (MME) of 
 #           opioids prescribed to a beneficiary within the mediator period, 
 #           accounting for multiple prescriptions on the same day, for all 
 #           beneficiaries in the analysis cohort
+#
 #
 # -------------------------------------------------------------------------
 

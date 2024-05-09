@@ -28,6 +28,9 @@ $Y_t$ represents the outcome of i) OUD, ii) opioid overdose, and iii) MOUD initi
 
 ** Note: If there is too much loss to follow up, we will need to shorten T. Can consider T=12 months. **
 
+
+Opioids relevant to these beneficiaries and their surgeries are collected <a href="https://github.com/CI-NYC/post_surgery_opioid_use/blob/main/R/01_exclusions/01_02_include_opioids.R#L85-L93">here</a>
+
 | Exposure               | Definition |
 |------------------------|------------|
 | MME                    | MME dose conversion is defined <a href="https://github.com/CI-NYC/post_surgery_opioid_use/blob/main/R/02_exposures/02_05_dose_mme.R#L38">here</a>  <p>The mean daily dose of MME is calculated here using the function "calculate_mean_daily_dose |

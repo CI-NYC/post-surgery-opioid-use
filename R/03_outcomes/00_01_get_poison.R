@@ -1,7 +1,8 @@
 # -------------------------------------
 # Script: get_poison
 # Author: Anton Hung
-# Purpose:
+# Purpose: modification of 06_define_OUD_components/define_oud_poison.R (by Kat Hoffman)
+#          This script finds and saves all poison dates, not just the first one
 # Notes:
 # -------------------------------------
 

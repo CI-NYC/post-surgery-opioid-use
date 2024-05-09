@@ -1,7 +1,8 @@
 # -------------------------------------
 # Script: days_of_continuous_use
 # Author: Anton Hung
-# Purpose: 
+# Purpose: similar to 02_01_days_supplied, but this one stores lengths of all continuous periods of
+#          opioid use into a vector
 # Notes:
 # -------------------------------------
 
