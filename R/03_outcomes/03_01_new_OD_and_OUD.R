@@ -1,6 +1,6 @@
 # -------------------------------------
 # Script: new_OD_and_OUD
-# Author:
+# Author: Anton Hung 2024-05-10
 # Purpose:
 # Notes:
 # -------------------------------------
@@ -14,7 +14,7 @@ all_poison <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/inte
 all_hillary <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/all_hillary_dts.rds")
 
 cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds") |>
-  select(BENE_ID, surgery_dt, discharge_dt) |>
+  select(BENE_ID, followup_start_dt) |>
   as.data.table()
 
 
@@ -22,7 +22,7 @@ cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermed
 poison_cohort <- left_join(cohort, all_poison, by="BENE_ID")
 
 poison_cohort[, has_poison := 
-         as.numeric(oud_poison_dt %within% interval(discharge_dt, discharge_dt %m+% years(2)))] 
+         as.numeric(oud_poison_dt %within% interval(followup_start_dt, followup_start_dt %m+% years(2)))] 
 
 poison_cohort <- poison_cohort |>
   mutate(has_poison = case_when(is.na(has_poison) ~ 0, TRUE ~ has_poison), # converting NA to 0
@@ -40,7 +40,7 @@ saveRDS(poison_cohort, "/mnt/general-data/disability/post_surgery_opioid_use/out
 hillary_cohort <- left_join(cohort, all_hillary, by="BENE_ID")
 
 hillary_cohort[, has_hillary := 
-                as.numeric(oud_hillary_dt %within% interval(discharge_dt, discharge_dt %m+% years(2)))] 
+                as.numeric(oud_hillary_dt %within% interval(followup_start_dt, followup_start_dt %m+% years(2)))] 
 
 hillary_cohort <- hillary_cohort |>
   mutate(has_hillary = case_when(is.na(has_hillary) ~ 0, TRUE ~ has_hillary), # converting NA to 0
