@@ -39,8 +39,8 @@ $Y_t$ represents the outcome of i) OUD, ii) opioid overdose, and iii) MOUD initi
 ### Inclusions/exclusions
 Some variables indicate what a surgery needs to have to be INCLUDED in the cohort, and others indicate features of a surgery that will cause it to be EXCLUDED. A flag (0 or 1) will be created for each criteria. Regardless of whether a variable is considered an inclusion or exclusion criteria, for every variable in the following table, I will be making flags that indicate that a surgery should be removed.
 
-| Criteria | Definition |
-| -------- | ---------- |
+| Criteria                | Definition |
+|-------------------------|------------|
 | Has an eligible surgery (inclusion)| Eligible surgery codes are in the format of ICD-9 codes. I have converted them to ICD-10 using the 2018 GEM, `2018 General Equivalence Mappings (GEMS) (ZIP)`, found at <a href="https://www.cms.gov/medicare/coding-billing/icd-10-codes/2018-icd-10-cm-gem">https://www.cms.gov/medicare/coding-billing/icd-10-codes/2018-icd-10-cm-gem</a>|
 | Age 18-64 (inclusion) | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L69-L72">here</a> |
 | Opioid prescription (inclusion) | Create a flag that indicates that the surgery DOES NOT have an ELIGIBLE opioid (prescribed during the perioperative period). |
@@ -54,6 +54,18 @@ Some variables indicate what a surgery needs to have to be INCLUDED in the cohor
 
 ### Confounders
 
+| Exposure               | Definition |
+|------------------------|------------|
+| Age                    | Will have age already after applying exclusion criteria. Found <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L69-L72">here</a> |
+| Sex          | Called `SEX_CD`. Can be joined from the df `joined_df.rds` located at `/mnt/general-data/disability/create_cohort/final/ |
+| Type of surgery | This is already stored as LINE_PRCDR_CD in the cohort, `first_surgeries.rds` |
+| Anxiety | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_anxiety.R">here</a> |
+| Depression | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_depression.R">here</a> |
+| Bipolar | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_bipolar.R#L1">here</a> |
+| Medical comorbidities |  |
+| Other substance use disorders |  |
+| Smoking history | ICD-9 codes from the original paper are: 305.1; V15.82 |
+
 ### Exposures
 Opioids relevant to these beneficiaries and their surgeries are collected <a href="https://github.com/CI-NYC/post_surgery_opioid_use/blob/main/R/01_exclusions/01_02_include_opioids.R#L85-L93">here</a>. When creating the inclusion variable for identifying beneficiaries with an opioid prescription during the perioperative period, the eligible opioids will also be saved as `opioids_for_surgery.rds` in the opioid_data folder on the server.
 
@@ -63,8 +75,8 @@ Opioids relevant to these beneficiaries and their surgeries are collected <a hre
 | Days supplied          | Relevant opioids from the OTL and RXL files are gathered <a href="https://github.com/CI-NYC/disability/blob/4a9cb21be99b54a53f6716281277a6821ca7352b/projects/mediation_unsafe_pain_mgmt/01_create_mediators/01_mediator_opioid_pain_rx.R">here</a> <p> OTL and RXL opioids are then combined into the same dataframe, and days supplied code can be adapted from <a href="https://github.com/CI-NYC/disability/blob/main/projects/mediation_unsafe_pain_mgmt/01_create_mediators/31_mediator_proportion_days_covered.R">here</a> <p> We are interested in total days supplied, rather than the proportion. So, the only change is to not divide by the length of the time interval.|
 | Days of continuous use | This can be done very similarly to days supplied. Except, instead of summing up all days of supply for opioids, I will count up and record each separate period of opioid use. <p> For every beneficiary, this produces a vector for the lengths of all periods of continuous use. |
 
-| Outcome | Definition |
-|---------|------------|
+| Outcome                | Definition |
+|------------------------|------------|
 | OUD     | Because OUD is also an exclusion criteria, by now we should already have all the dates of OUD for our beneficiaries. <p> Whether the date of an OUD exists in the follow-up period needs to be defined. <p> Then, for those who have an OUD diagnosis within the follow-up period, the earliest date of an OUD diagnosis needs to be recorded. |
 | OD      | OD will also need to be identified within he follow-up period using the same method as for OUD.|
 | MOUD (met)   | defined <a href="https://github.com/CI-NYC/disability/blob/4a9cb21be99b54a53f6716281277a6821ca7352b/projects/create_cohort/scripts/06_define_OUD_components/define_moud_met.R">here</a>|
