@@ -11,13 +11,14 @@ Inclusion criteria:
   - had a surgery using the ICD codes given by Lisa
   - had an opioid prescribed in the range of 30 days prior to surgery to 14 days after surgery discharge
 
-Exclusion criteria"
+Exclusion criteria:
 - history of OUD *or* overdose (any) *or* MOUD 6 months prior to surgery up to the discharge date (as a sensitivity analysis can also make this 12 months)
 - pregnant
 - dual eligible
 - ineligible state (not in the states we are supposed to have data on)
 - cancer diagnosis
 - not continuously enrolled for 6 months prior to surgery date
+- had an opioid prescribed between 6 months prior to surgery to 1 month prior to surgery
 
 ## Observed data:
 We assume observed data $\mathbf{O}=(\mathbf{W}, \mathbf{A}, \Delta_1, \Delta_1 Y_1, ..., \Delta_{24}, \Delta_{24} Y_{24})$, where: 
@@ -28,8 +29,33 @@ $Y_t$ represents the outcome of i) OUD, ii) opioid overdose, and iii) MOUD initi
 
 ** Note: If there is too much loss to follow up, we will need to shorten T. Can consider T=12 months. **
 
+### Brief overview of steps:
+1. Gather all SURGERIES.
+2. Apply exclusion criteria to the surgeries.
+3. This may leave multiple surgeries for the same beneficiaries. I will take just the first surgery for anyone who has multiple. The result is a COHORT where each beneficiary can be matched to a single surgery.
+4. Exposures will be calculated for the cohort during the perioperative period.
+5. Outcomes will be calculated for the cohort during the follow-up period.
 
-Opioids relevant to these beneficiaries and their surgeries are collected <a href="https://github.com/CI-NYC/post_surgery_opioid_use/blob/main/R/01_exclusions/01_02_include_opioids.R#L85-L93">here</a>
+### Inclusions/exclusions
+Some variables indicate what a surgery needs to have to be INCLUDED in the cohort, and others indicate features of a surgery that will cause it to be EXCLUDED. A flag (0 or 1) will be created for each criteria. Regardless of whether a variable is considered an inclusion or exclusion criteria, for every variable in the following table, I will be making flags that indicate that a surgery should be removed.
+
+| Criteria | Definition |
+| -------- | ---------- |
+| Has an eligible surgery (inclusion)| Eligible surgery codes are in the format of ICD-9 codes. I have converted them to ICD-10 using the 2018 GEM, `2018 General Equivalence Mappings (GEMS) (ZIP)`, found at <a href="https://www.cms.gov/medicare/coding-billing/icd-10-codes/2018-icd-10-cm-gem">https://www.cms.gov/medicare/coding-billing/icd-10-codes/2018-icd-10-cm-gem</a>|
+| Age 18-64 (inclusion) | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L69-L72">here</a> |
+| Opioid prescription (inclusion) | Create a flag that indicates that the surgery DOES NOT have an ELIGIBLE opioid (prescribed during the perioperative period). |
+| Opioid prescription (exclusion) | Create a flag that indicates that the surgery DOES have an INELIGIBLE opioid (prescribed between start of washout to start of perioperative period). |
+| OUD (exclusion) | The dates of all OUD diagnosis codes for the cohort are identified <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/06_define_OUD_components/define_oud_hillary.R">here</a> and is called `hillary`. <p> I need to copy the original code up until L#109 because we need to store all OUD dates, not just the first occurrence (which is what the original code did). The reason we may be interested in all OUD dates is because there may be a case where a person has multiple OUD dates, but their earliest one does not fall in either washout or follow-up period. I need to know all OUD dates to be able to exclude individuals correctly and to determine who develops OUD during the follow-up period. <p> Whether the date of an OUD exists in the washout period needs to be defined. |
+| OD (exclusion) | OD (called `poison`) will follow the same steps as OUD. Only the diagnosis codes will change. The definition for OD can be found <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/06_define_OUD_components/define_oud_poison.R">here</a> |
+| Continuous enrollment (exclusion) | Beneficiaries need to be continuously enrolled for the entire 6-month washout period. Whether beneficiaries remain continuously enrolled can be deduced from the file `/mnt/general-data/create_cohort/intermediate/tafdedts/nest_dts.rds` |
+| Pregnant (exclusion) | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L277">here</a> |
+| Dual eligible (exclusion) | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L334">here</a> |
+| Cancer (exclusion) | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L311">here</a> |
+
+### Confounders
+
+### Exposures
+Opioids relevant to these beneficiaries and their surgeries are collected <a href="https://github.com/CI-NYC/post_surgery_opioid_use/blob/main/R/01_exclusions/01_02_include_opioids.R#L85-L93">here</a>. When creating the inclusion variable for identifying beneficiaries with an opioid prescription during the perioperative period, the eligible opioids will also be saved as `opioids_for_surgery.rds` in the opioid_data folder on the server.
 
 | Exposure               | Definition |
 |------------------------|------------|
@@ -39,8 +65,8 @@ Opioids relevant to these beneficiaries and their surgeries are collected <a hre
 
 | Outcome | Definition |
 |---------|------------|
-| OUD     | The dates of all OUD diagnosis codes for the cohort are identified <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/06_define_OUD_components/define_oud_hillary.R">here</a> and is called `hillary`. <p> I need to copy the original code up until L#109 because we need to store all OUD dates, not just the first occurrence (which is what the original code did). The reason we may be interested in all OUD dates is because there may be a case where a person has a very early OUD date, and it is not recent enough to exclude them from the study. They may also have a later OUD date, which is an outcome of interest. But because the original code only recorded the first OUD date, any future OUDs would be masked from us. <p> Whether the date of an OUD exists in the follow-up period needs to be defined. <p> Then, for those who have an OUD diagnosis within the follow-up period, the earliest date of an OUD diagnosis needs to be recorded. |
-| OD      | OD (called `poison`) will follow the same steps as OUD. Only the diagnosis codes will change. The definition for OD can be found <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/06_define_OUD_components/define_oud_poison.R">here</a> |
+| OUD     | Because OUD is also an exclusion criteria, by now we should already have all the dates of OUD for our beneficiaries. <p> Whether the date of an OUD exists in the follow-up period needs to be defined. <p> Then, for those who have an OUD diagnosis within the follow-up period, the earliest date of an OUD diagnosis needs to be recorded. |
+| OD      | OD will also need to be identified within he follow-up period using the same method as for OUD.|
 | MOUD (met)   | defined <a href="https://github.com/CI-NYC/disability/blob/4a9cb21be99b54a53f6716281277a6821ca7352b/projects/create_cohort/scripts/06_define_OUD_components/define_moud_met.R">here</a>|
 | MOUD (nal)   | defined <a href="https://github.com/CI-NYC/disability/blob/4a9cb21be99b54a53f6716281277a6821ca7352b/projects/create_cohort/scripts/06_define_OUD_components/define_moud_nal.R">here</a>|
 | MOUD (bup)   | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/06_define_OUD_components/define_moud_bup.R#L22">here</a> <p> best_list.rds is required and found at disability/projects/define_moud/input/best_list.rds | 
