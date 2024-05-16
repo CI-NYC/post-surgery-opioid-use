@@ -24,8 +24,10 @@ library(data.table)
 library(tictoc)
 library(here)
 
-surgeries <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
+surgeries <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
 
+best_list <- read.csv("~/medicaid/post_surgery_opioid_use/R/01_exclusions/01_05_get_dates/best_list.csv")|>
+  mutate(ndc = as.character(ndc))
 
 # otl and rxl data for finding opioid claims
 src_root <- "/mnt/processed-data/disability"
@@ -35,18 +37,14 @@ files <- paste0(list.files(src_root, pattern = "TAFOTL", recursive = TRUE))
 parquet_files <- grep("\\.parquet$", files, value = TRUE)
 otl <- open_dataset(file.path(src_root, parquet_files))
 
-# Read in OTL (Other services line) 
+# Read in RXL (Pharmacy line) 
 files <- paste0(list.files(src_root, pattern = "TAFRXL", recursive = TRUE))
 parquet_files <- grep("\\.parquet$", files, value = TRUE)
-otl <- open_dataset(file.path(src_root, parquet_files))
+rxl <- open_dataset(file.path(src_root, parquet_files))
 
-best_otl <- readRDS(("/mnt/general-data/disability/create_cohort/intermediate/tmp/best_otl.rds"))
-best_rxl <- read_rds(here("/mnt/general-data/disability/create_cohort/intermediate/tmp/best_rxl_kept.rds"))
-best_list <- rbind
-
-dts_cohorts <- open_dataset("projects/create_cohort/data/tafdedts/dts_cohorts.parquet") |>
-  collect() |> 
-  mutate(index = rep(1:32, length.out=n()))
+# dts_cohorts <- open_dataset("projects/create_cohort/data/tafdedts/dts_cohorts.parquet") |>
+#   collect() |> 
+#   mutate(index = rep(1:32, length.out=n()))
 
 
 # Filter RXL files by cohort ---------------------------------------------------------
@@ -240,7 +238,7 @@ best_all_bup_start_stop <-
   bind_cols(best_all_bup_end_dts |> select(-BENE_ID)) |>
   mutate(moud_med = "bup") |>
   select(BENE_ID, moud_med, everything())|>
-  left_join(dts_cohorts |> select(BENE_ID, washout_start_dt)) |>
+  left_join(surgeries |> select(BENE_ID, washout_start_dt)) |>
   filter(!(moud_end_dt < washout_start_dt)) |> # filter out rows that end before washout period begins
   select(-washout_start_dt)
 
@@ -276,4 +274,4 @@ best_all_bup_start_stop <-
 #   left_join(best_bup_intervals) |>
 #   mutate(across(contains("oud_moud"), ~ifelse(is.na(.x), 0, .x))) # replace missing data with zero (no bup in that interval)
 
-saveRDS(best_all_bup_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries_moud_bup.rds")
+saveRDS(best_all_bup_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/all_moud_bup.rds")

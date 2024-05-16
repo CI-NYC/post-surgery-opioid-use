@@ -17,7 +17,7 @@ library(data.table)
 library(tictoc)
 library(here)
 
-surgeries <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
+surgeries <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
 
 # otl and rxl data for finding opioid claims
 src_root <- "/mnt/processed-data/disability"
@@ -183,4 +183,4 @@ all_nal_start_stop <-
 #   left_join(nal_intervals) |>
 #   mutate(across(contains("oud_moud"), ~ifelse(is.na(.x), 0, .x))) # replace missing data with zero (no nal in that interval)
 
-saveRDS(all_nal_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/moud_nal.rds")
+saveRDS(all_nal_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/all_moud_nal.rds")

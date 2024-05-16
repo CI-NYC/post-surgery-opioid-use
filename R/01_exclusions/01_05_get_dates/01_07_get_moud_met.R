@@ -1,5 +1,5 @@
 # -------------------------------------
-# Script: Define MOUD (buprenorphine)
+# Script: Define MOUD (methodone)
 # Author: Kat Hoffman July 2023
 # Purpose:
 # Notes:
@@ -22,7 +22,8 @@ met_hcpcs <- c(
 )
 
 
-surgeries <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
+
+surgeries <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
 
 
 # otl and rxl data for finding opioid claims
@@ -57,10 +58,13 @@ met_hcpcs_otl <-
          form = "tablet",
          moud_start_dt = LINE_SRVC_BGN_DT,
          moud_end_dt = moud_start_dt + 21) |> # met implants last 1 day
-  select(BENE_ID, moud_med, form, moud_start_dt, moud_end_dt)
+  select(BENE_ID, moud_med, form, moud_start_dt, moud_end_dt) |>
+  group_by(BENE_ID) |>
+  arrange(BENE_ID, moud_start_dt)
 
 # adjudicate the methadone information depending on when the beneficiary received the next dose
 # check when the next/last injection was given, and how long that was since the last injection ended (injection + 28 days)
+
 met_adj <-
   met_hcpcs_otl |>
   drop_na(BENE_ID) |>
@@ -102,35 +106,4 @@ all_met_start_stop <-
   filter(!(moud_end_dt < washout_start_dt)) |> # filter out rows that end before washout period begins
   select(-washout_start_dt)
 
-
-# met_intervals <-
-#   all_met_start_stop |>
-#   left_join(dts_cohorts) |> # left_join, only merge with rows that have any bup
-#   # start or end date can fall in the periods of interst
-#   mutate(moud_start_dt = case_when(moud_start_dt < LINE_SRVC_BGN_DT ~ LINE_SRVC_BGN_DT, TRUE ~ moud_start_dt),
-#          oud_moud_met_washout_cal = case_when(moud_start_dt %within% interval(LINE_SRVC_BGN_DT, washout_cal_end_dt) ~ 1,
-#                                               moud_end_dt %within% interval(LINE_SRVC_BGN_DT, washout_cal_end_dt) ~ 1,
-#                                               TRUE ~ 0),
-#          oud_moud_met_washout_12mos_cal = case_when(moud_start_dt %within% interval(washout_start_dt, washout_12mos_end_dt) ~ 1,
-#                                                     moud_end_dt %within% interval(washout_start_dt, washout_12mos_end_dt) ~ 1,
-#                                                     TRUE ~ 0),
-#          oud_moud_met_washout_cont = case_when(moud_start_dt %within% interval(washout_start_dt, washout_cont_end_dt) ~ 1,
-#                                                moud_end_dt %within% interval(washout_start_dt, washout_cont_end_dt) ~ 1,
-#                                                TRUE ~ 0),
-#          oud_moud_met_study_cal = case_when(moud_start_dt %within% interval(washout_start_dt, study_cal_end_dt) ~ 1,
-#                                             moud_end_dt %within% interval(washout_start_dt, study_cal_end_dt) ~ 1,
-#                                             TRUE ~ 0),
-#          oud_moud_met_study_cont = case_when(moud_start_dt %within% interval(washout_start_dt, study_cont_end_dt) ~ 1,
-#                                              moud_end_dt %within% interval(washout_start_dt, study_cont_end_dt) ~ 1,
-#                                              TRUE ~ 0),
-#   ) |>
-#   group_by(BENE_ID) |>
-#   summarize(across(starts_with("oud_moud"), max)) # keep a row for each BENE_ID that denotes whether they had the drug in this period
-
-# all_met_intervals <-
-#   dts_cohorts |>
-#   select(BENE_ID) |>
-#   left_join(met_intervals) |>
-#   mutate(across(contains("oud_moud"), ~ifelse(is.na(.x), 0, .x))) # replace missing data with zero (no met in that interval)
-#
-saveRDS(all_met_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/moud_met.rds")
+saveRDS(all_met_start_stop, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/all_moud_met.rds")
