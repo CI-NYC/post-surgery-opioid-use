@@ -59,10 +59,10 @@ Some variables indicate what a surgery needs to have to be INCLUDED in the cohor
 | Age                    | Will have age already after applying exclusion criteria. Found <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L69-L72">here</a> |
 | Sex          | Called `SEX_CD`. Can be joined from the df `joined_df.rds` located at `/mnt/general-data/disability/create_cohort/final/` |
 | Type of surgery | This is already stored as LINE_PRCDR_CD in the cohort, `first_surgeries.rds` |
-| Anxiety | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_anxiety.R">here</a> |
-| Depression | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_depression.R">here</a> |
-| Bipolar | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_bipolar.R#L1">here</a> |
-| Medical comorbidities | Preoperative pain disorders (back pain, neck pain, arthritis, centralized pain), codes from Lisa. |
+| Anxiety | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_anxiety.R">here</a>. Need to make a binary indicator of whether or not there exists a claim for anxiety during the washout period. |
+| Depression | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_depression.R">here</a>. Need to make a binary indicator of whether or not there exists a claim for depression during the washout period. |
+| Bipolar | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_bipolar.R#L1">here</a>. Need to make a binary indicator of whether or not there exists a claim for bipolar disorder during the washout period. |
+| Medical comorbidities | Preoperative pain disorders (back pain, neck pain, arthritis), codes from Lisa. Need a binary indicator for each.|
 | Other substance use disorders | Alcohol abuse disorder (CCS code: 660) <p>Substance abuse disorder (CCS code: 661) |
 | Smoking history | ICD-9 codes from the original paper are: 305.1; V15.82 |
 
