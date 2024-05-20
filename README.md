@@ -57,7 +57,7 @@ Some variables indicate what a surgery needs to have to be INCLUDED in the cohor
 | Exposure               | Definition |
 |------------------------|------------|
 | Age                    | Will have age already after applying exclusion criteria. Found <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L69-L72">here</a> |
-| Sex          | Called `SEX_CD`. Can be joined from the df `joined_df.rds` located at `/mnt/general-data/disability/create_cohort/final/ |
+| Sex          | Called `SEX_CD`. Can be joined from the df `joined_df.rds` located at `/mnt/general-data/disability/create_cohort/final/` |
 | Type of surgery | This is already stored as LINE_PRCDR_CD in the cohort, `first_surgeries.rds` |
 | Anxiety | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_anxiety.R">here</a> |
 | Depression | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_depression.R">here</a> |
