@@ -24,7 +24,7 @@ Exclusion criteria:
 We assume observed data $\mathbf{O}=(\mathbf{W}, \mathbf{A}, \Delta_1, \Delta_1 Y_1, ..., \Delta_{24}, \Delta_{24} Y_{24})$, where: 
 $\mathbf{W}$ represents the covariates, measured during the 6 months prior to surgery (i.e., during the washout period); 
 $\mathbf{A}$ represent prescription opioid a) dose (in MME), b) days supplied, and c) days of continuous use, measured during 30 days prior to surgery up to 14 days after surgery discharge; 
-$\Delta_t$ represents an indicator of remaining uncensored at month t following surgery discharge (24 months for the primary analysis); surgery discharge is time 0;
+$\Delta_t$ represents an indicator of remaining uncensored at month t following surgery discharge (24 months for the primary analysis); surgery discharge + 14 days is time 0;
 $Y_t$ represents the outcome of i) OUD, ii) opioid overdose, and iii) MOUD initiation at time t, which is observed among those who remain uncensored. 
 
 ** Note: If there is too much loss to follow up, we will need to shorten T. Can consider T=12 months. **
