@@ -62,8 +62,8 @@ Some variables indicate what a surgery needs to have to be INCLUDED in the cohor
 | Anxiety | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_anxiety.R">here</a> |
 | Depression | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_depression.R">here</a> |
 | Bipolar | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_bipolar.R#L1">here</a> |
-| Medical comorbidities |  |
-| Other substance use disorders |  |
+| Medical comorbidities | Preoperative pain disorders (back pain, neck pain, arthritis, centralized pain), codes from Lisa. |
+| Other substance use disorders | Alcohol abuse disorder (CCS code: 660) <p>Substance abuse disorder (CCS code: 661) |
 | Smoking history | ICD-9 codes from the original paper are: 305.1; V15.82 |
 
 ### Exposures
