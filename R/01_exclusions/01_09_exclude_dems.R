@@ -49,6 +49,6 @@ elig_clean <- last_elig_cal |>
                                                       TRUE ~ 0),
          cohort_exclusion_dual = case_when(washout_cal_elig_code %in% dual_elig_cds ~ 1,
                                                TRUE ~ 0)) |>
-  select(CLM_ID, cohort_exclusion_pregnancy, cohort_exclusion_cancer_elig, cohort_exclusion_dual)
+  select(BENE_ID, CLM_ID, cohort_exclusion_pregnancy, cohort_exclusion_cancer_elig, cohort_exclusion_dual)
 
 saveRDS(elig_clean, "/mnt/general-data/disability/post_surgery_opioid_use/exclusion/cohort_exclusion_dems.rds")

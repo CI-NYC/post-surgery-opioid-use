@@ -39,6 +39,6 @@ cohort_exclusion_age <-
   mutate(cohort_exclusion_age = case_when(age_enrollment < 19 ~ 1,
                                           age_enrollment >= 65 ~ 1, 
                                           TRUE ~ 0)) |>
-  select(CLM_ID, cohort_exclusion_age)
+  select(BENE_ID, CLM_ID, age_enrollment, cohort_exclusion_age)
 
 saveRDS(cohort_exclusion_age, "/mnt/general-data/disability/post_surgery_opioid_use/exclusion/cohort_exclusion_age.rds")

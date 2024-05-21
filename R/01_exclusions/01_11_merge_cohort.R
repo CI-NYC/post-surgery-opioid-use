@@ -8,8 +8,8 @@ library(dplyr)
 library(data.table)
 library(lubridate)
 
-intermediate_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/"
-exclusion_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/exclusion/"
+intermediate_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/intermediate"
+exclusion_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/exclusion"
 
 claims <- readRDS(file.path(intermediate_dir, "surgery_claims.rds"))
 
@@ -19,8 +19,9 @@ exclusion_noncontinuous <- readRDS(file.path(exclusion_dir, "cohort_exclusion_no
 exclusion_eligible_opioid <- readRDS(file.path(exclusion_dir, "cohort_exclusion_eligible_opioid.rds"))
 exclusion_ineligible_opioid <- readRDS(file.path(exclusion_dir, "cohort_exclusion_ineligible_opioid.rds"))
 exclusion_surgery_duration <- readRDS(file.path(exclusion_dir, "cohort_exclusion_surgery_duration.rds"))
-exclusion_age <- readRDS(file.path(exclusion_dir, "cohort_exclusion_age.rds"))
+exclusion_age <- readRDS(file.path(exclusion_dir, "cohort_exclusion_age.rds")) |> select(-age_enrollment)
 exclusion_dems <- readRDS(file.path(exclusion_dir, "cohort_exclusion_dems.rds"))
+exclusion_moud <- readRDS(file.path(exclusion_dir, "cohort_exclusion_moud.rds"))
 
 # exclusion_age2 <- readRDS("/mnt/general-data/disability/create_cohort/intermediate/tafdebse/cohort_exclusion_age.rds") |> 
 #   filter(BENE_ID %in% claims$BENE_ID) |>
@@ -35,8 +36,9 @@ joined_surgeries <- claims |>
   left_join(exclusion_poison, by = c("BENE_ID", "CLM_ID")) |>
   left_join(exclusion_oud_hillary, by = c("BENE_ID", "CLM_ID")) |>
   left_join(exclusion_surgery_duration, by = c("BENE_ID", "CLM_ID")) |>
-  left_join(exclusion_age, by = "CLM_ID") |>
-  left_join(exclusion_dems, by = "CLM_ID") |>
+  left_join(exclusion_age, by = c("BENE_ID", "CLM_ID")) |>
+  left_join(exclusion_dems, by = c("BENE_ID", "CLM_ID")) |>
+  left_join(exclusion_moud, by = c("BENE_ID", "CLM_ID")) |>
   mutate(cohort_exclusion_pregnancy = case_when(is.na(cohort_exclusion_pregnancy) ~ 0, TRUE ~ cohort_exclusion_pregnancy),
          cohort_exclusion_cancer_elig = case_when(is.na(cohort_exclusion_cancer_elig) ~ 0, TRUE ~ cohort_exclusion_cancer_elig),
          cohort_exclusion_dual = case_when(is.na(cohort_exclusion_dual) ~ 0, TRUE ~ cohort_exclusion_dual))
@@ -53,7 +55,10 @@ cleaned_surgeries <- joined_surgeries |>
            cohort_exclusion_age +
            cohort_exclusion_pregnancy +
            cohort_exclusion_cancer_elig +
-           cohort_exclusion_cancer_elig)
+           cohort_exclusion_dual +
+           cohort_exclusion_moud_met +
+           cohort_exclusion_moud_nal +
+           cohort_exclusion_moud_bup)
 
 cleaned_surgeries <- cleaned_surgeries |>
   filter(cohort_exclusion_cal == 0)
