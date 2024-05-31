@@ -21,10 +21,9 @@ otl <- open_dataset(file.path(src_root, parquet_files))
 
 # surgery claims
 variable = "Surgery"
-codes <- read_yaml("/home/amh2389/medicaid/post_surgery_opioid_use/R/surgery_codes.yml")
+codes <- read_yaml("/home/amh2389/medicaid/post_surgery_opioid_use/input/surgery_codes.yml")
 codes <- c(names(codes[[variable]]$CPT),
-           names(codes[[variable]]$ICD10),
-           names(codes[[variable]]$CCS))
+           names(codes[[variable]]$ICD10))
 
 # Filter OTL to claims codes
 claims_vars <- c("BENE_ID", "CLM_ID", "LINE_SRVC_BGN_DT", "LINE_SRVC_END_DT", "LINE_PRCDR_CD_SYS", "LINE_PRCDR_CD")
@@ -58,8 +57,8 @@ claims <- claims |>
          LINE_SRVC_END_DT = max(LINE_SRVC_END_DT),
          LINE_PRCDR_CD_SYS = list(unique(LINE_PRCDR_CD_SYS)),
          LINE_PRCDR_CD = list(unique(LINE_PRCDR_CD))) |> # combining all procedure codes into a list
-  distinct() |>
-  ungroup()
+  ungroup() |>
+  distinct()
   
 
 # calculate a washout period of 6 months before surgery

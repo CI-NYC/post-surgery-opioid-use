@@ -52,6 +52,7 @@ cleaned_surgeries <- joined_surgeries |>
            cohort_exclusion_ineligible_opioid +
            cohort_exclusion_oud_poison +
            cohort_exclusion_oud_hillary +
+           cohort_exclusion_surgery_duration +
            cohort_exclusion_age +
            cohort_exclusion_pregnancy +
            cohort_exclusion_cancer_elig +

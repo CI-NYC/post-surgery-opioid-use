@@ -94,7 +94,7 @@ claims_rxl_merged <- left_join(claims, rxl, by="BENE_ID", relationship = "many-t
 # which opioids were prescribed during the washout period (not including 30 day perioperative period)
 claims_rxl_merged[, ineligible_opioid := 
                     as.numeric(RX_FILL_DT %within% interval(washout_start_dt,
-                                                            surgery_dt %m-% days(30)))] 
+                                                            surgery_dt %m-% days(31)))] 
 
 # 
 cohort_exclusion_ineligible_opioid <- claims_rxl_merged |>

@@ -79,7 +79,9 @@ out <- foreach(data = opioids$data,
 
 plan(sequential)
 
+# out <- out |>
+#   mutate(mediator_mean_daily_dose_mme = pmin(mediator_mean_daily_dose_mme, quantile(mediator_mean_daily_dose_mme, 0.99)))
 
 # Save final dataset -----------------------------------------------------------
 
-saveRDS(out, file.path(save_dir, "/opioid_data/surgery_mean_daily_dose_mme.rds"))
+saveRDS(out, file.path(save_dir, "opioid_data/surgery_mean_daily_dose_mme.rds"))

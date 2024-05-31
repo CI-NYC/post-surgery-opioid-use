@@ -25,83 +25,46 @@ files <- paste0(list.files(src_root, pattern = "TAFIPH", recursive = TRUE))
 parquet_files <- grep("\\.parquet$", files, value = TRUE)
 iph <- open_dataset(file.path(src_root, parquet_files))
 
+codebook <- read_yaml("/home/amh2389/medicaid/post_surgery_opioid_use/input/surgery_codes.yml")
 
-# Filter claims codes
-### ALCOHOL
-alcohol_oth <- oth |>
-  select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT, DGNS_CD_1) |>
-  filter(BENE_ID %in% cohort$BENE_ID) |>
-  filter(grepl("^F101", DGNS_CD_1) | grepl("^F102", DGNS_CD_1)) |>
-  mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
-  collect()
+find_substance <- function(which_substance, new_column_name) {
+  codes <- c(names(codebook[[which_substance]]$ICD10))
+  
+  substance_oth <- oth |>
+    select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT, contains("DGNS_CD")) |>
+    filter(BENE_ID %in% cohort$BENE_ID) |>
+    filter(if_any(starts_with("DGNS_CD"), ~. %in% codes)) |>
+    mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
+    collect() |>
+    select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT)
+  
+  substance_iph <- iph |>
+    select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT, contains("DGNS_CD")) |>
+    filter(BENE_ID %in% cohort$BENE_ID) |>
+    filter(if_any(starts_with("DGNS_CD"), ~. %in% codes)) |>
+    mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
+    collect() |>
+    select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT)
+  
+  has_substance_abuse <- rbind(substance_oth, substance_iph) |>
+    right_join(cohort) |>
+    filter(SRVC_BGN_DT %within% interval(washout_start_dt, followup_start_dt)) |>
+    group_by(BENE_ID) |>
+    mutate(!!new_column_name := 1) |>
+    select(BENE_ID, !!new_column_name) |>
+    ungroup() |>
+    distinct()
+}
 
-
-alcohol_iph <- iph |>
-  select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT, DGNS_CD_1) |>
-  filter(BENE_ID %in% cohort$BENE_ID) |>
-  filter(grepl("^F101", DGNS_CD_1) | grepl("^F102", DGNS_CD_1)) |>
-  mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
-  collect()
-
-has_alcohol_abuse <- rbind(alcohol_oth, alcohol_iph) |>
-  right_join(cohort) |>
-  filter(SRVC_BGN_DT %within% interval(washout_start_dt, followup_start_dt)) |>
-  group_by(BENE_ID) |>
-  mutate(has_alcohol_abuse = 1) |>
-  select(BENE_ID, has_alcohol_abuse) |>
-  ungroup() |>
-  distinct()
-
+### ALCOHOL ABUSE
+has_alcohol_abuse <- find_substance("Alcohol", "has_alcohol_abuse")
 
 ### OTHER SUBSTANCE ABUSE
-# Filter claims codes
-substance_oth <- oth |>
-  select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT, DGNS_CD_1) |>
-  filter(BENE_ID %in% cohort$BENE_ID) |>
-  filter(grepl("^F1[1-9]1", DGNS_CD_1) | grepl("^F1[1-9]2", DGNS_CD_1)) |>
-  mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
-  collect()
-
-substance_iph <- iph |>
-  select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT, DGNS_CD_1) |>
-  filter(BENE_ID %in% cohort$BENE_ID) |>
-  filter(grepl("^F1[1-9]1", DGNS_CD_1) | grepl("^F1[1-9]2", DGNS_CD_1)) |>
-  mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
-  collect()
-
-has_substance_abuse <- rbind(substance_oth, substance_iph) |>
-  right_join(cohort) |>
-  filter(SRVC_BGN_DT %within% interval(washout_start_dt, followup_start_dt)) |>
-  group_by(BENE_ID) |>
-  mutate(has_substance_abuse = 1) |>
-  select(BENE_ID, has_substance_abuse) |>
-  ungroup() |>
-  distinct()
-
+has_substance_abuse <- find_substance("Other substances", "has_substance_abuse")
 
 ### SMOKING HISTORY
-smoking_oth <- oth |>
-  select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT, DGNS_CD_1) |>
-  filter(BENE_ID %in% cohort$BENE_ID) |>
-  filter(DGNS_CD_1 %in% c("Z87891", "F17200")) |>
-  mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
-  collect()
+has_smoking_history <- find_substance("Smoking", "has_smoking_history")
 
-smoking_iph <- iph |>
-  select(BENE_ID, SRVC_BGN_DT, SRVC_END_DT, DGNS_CD_1) |>
-  filter(BENE_ID %in% cohort$BENE_ID) |>
-  filter(DGNS_CD_1 %in% c("Z87891", "F17200")) |>
-  mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
-  collect()
-
-has_smoking_history <- rbind(smoking_oth, smoking_iph) |>
-  right_join(cohort) |>
-  filter(SRVC_BGN_DT %within% interval(washout_start_dt, followup_start_dt)) |>
-  group_by(BENE_ID) |>
-  mutate(has_smoking_history = 1) |>
-  select(BENE_ID, has_smoking_history) |>
-  ungroup() |>
-  distinct()
 
 
 ### Putting all three together

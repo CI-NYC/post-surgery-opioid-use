@@ -1,5 +1,5 @@
 # -------------------------------------
-# Script: exclusion_opioids
+# Script: inclusion_opioids
 # Author: Anton Hung
 # Purpose: include beneficiaries who received an opioid prescription between 30 days before surgery to 14 days after discharge
 # Notes:

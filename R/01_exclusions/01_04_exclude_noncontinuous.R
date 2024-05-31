@@ -116,3 +116,54 @@ claims$cohort_exclusion_noncontinuous <- (sapply(1:nrow(claims), function(i) {
 
 claims <- claims[, c("BENE_ID", "CLM_ID", "cohort_exclusion_noncontinuous")]
 saveRDS(claims, "/mnt/general-data/disability/post_surgery_opioid_use/exclusion/cohort_exclusion_noncontinuous.rds")
+
+
+
+
+
+
+
+############# ANOTHER METHOD - in progress
+
+src_root <- "/mnt/processed-data/disability"
+
+# Read in DTS 
+files <- paste0(list.files(src_root, pattern = "TAFDEDTS", recursive = TRUE))
+parquet_files <- grep("\\.parquet$", files, value = TRUE)
+dts <- open_dataset(file.path(src_root, parquet_files))
+
+dts <- dts |>
+  filter(BENE_ID %in% claims$BENE_ID) |>
+  collect()
+
+tmp <- claims |>
+  left_join(dts, by= "BENE_ID", relationship = "many-to-many")
+
+tmp <- tmp |>
+  filter(washout_start_dt %within% interval(ENRLMT_START_DT, ENRLMT_END_DT) |
+           surgery_dt %within% interval(ENRLMT_START_DT, ENRLMT_END_DT))
+tmp <- tmp |>
+  mutate(continuous = case_when(interval(washout_start_dt,surgery_dt) %within% 
+                                  interval(ENRLMT_START_DT, ENRLMT_END_DT) ~ 0, TRUE ~ NA))
+
+
+
+
+# Convert date columns to numeric (days since a reference date)
+ranges <- tmp %>%
+  mutate(
+    start_num = as.numeric(ENRLMT_START_DT),
+    end_num = as.numeric(ENRLMT_END_DT)
+  )
+
+# Arrange by start date within each ID group
+collapsed_ranges <- ranges %>%
+  arrange(BENE_ID, start_num) %>%
+  group_by(BENE_ID) %>%
+  mutate(prev_end_num = lag(end_num, default = first(end_num))) %>%
+  filter(start_num <= prev_end_num + 1) %>%
+  summarise(
+    date_start = as.Date(first(ENRLMT_START_DT)),
+    date_end = as.Date(max(ENRLMT_END_DT))
+  )
+

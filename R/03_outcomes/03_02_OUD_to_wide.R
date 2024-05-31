@@ -76,7 +76,7 @@ cohort <- cohort |>
   left_join(poison |> select(BENE_ID, oud_poison_dt)) |>
   left_join(hillary |> select(BENE_ID, oud_hillary_dt))
 
-for (month in 1:12){
+for (month in 1:18){
   print(paste("Processing month:", month))
   tic()
   censor_column <- paste0("C_", month)
@@ -87,7 +87,8 @@ for (month in 1:12){
   bup_column <- paste0("Y5_", month)
   
   cohort <- cohort |>
-    mutate({{censor_column}} := case_when(enrolled_until <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
+    mutate(
+      {{censor_column}} := case_when(enrolled_until <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
            {{OD_column}} := case_when(oud_poison_dt <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
            {{OUD_column}} := case_when(oud_hillary_dt <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
            {{met_column}} := case_when(met_start_dt <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
