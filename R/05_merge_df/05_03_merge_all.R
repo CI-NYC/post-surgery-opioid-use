@@ -10,7 +10,7 @@ exposures <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final
 
 confounders <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/confounders_merged.rds")
 
-outcomes <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide.rds")[,-c(2,3,4,5,6,7,8,9)]
+outcomes <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide2.rds")[,-c(2:9)]
 
 combined_df <- exposures |>
   left_join(confounders) |>

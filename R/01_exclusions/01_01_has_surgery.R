@@ -19,6 +19,11 @@ files <- paste0(list.files(src_root, pattern = "TAFOTL", recursive = TRUE))
 parquet_files <- grep("\\.parquet$", files, value = TRUE)
 otl <- open_dataset(file.path(src_root, parquet_files))
 
+# Read in IPH (Other services line) 
+files <- paste0(list.files(src_root, pattern = "TAFIPH", recursive = TRUE))
+parquet_files <- grep("\\.parquet$", files, value = TRUE)
+iph <- open_dataset(file.path(src_root, parquet_files))
+
 # surgery claims
 variable = "Surgery"
 codes <- read_yaml("/home/amh2389/medicaid/post_surgery_opioid_use/input/surgery_codes.yml")
@@ -26,8 +31,8 @@ codes <- c(names(codes[[variable]]$CPT),
            names(codes[[variable]]$ICD10))
 
 # Filter OTL to claims codes
-claims_vars <- c("BENE_ID", "CLM_ID", "LINE_SRVC_BGN_DT", "LINE_SRVC_END_DT", "LINE_PRCDR_CD_SYS", "LINE_PRCDR_CD")
-claims <- select(otl, all_of(claims_vars)) |>
+otl_vars <- c("BENE_ID", "CLM_ID", "LINE_SRVC_BGN_DT", "LINE_SRVC_END_DT", "LINE_PRCDR_CD")
+otl <- select(otl, all_of(otl_vars)) |>
   filter(LINE_PRCDR_CD %in% codes) |>
   filter(!is.na(BENE_ID)) |>
   mutate(LINE_SRVC_END_DT = case_when(is.na(LINE_SRVC_END_DT) ~ LINE_SRVC_BGN_DT, TRUE ~ LINE_SRVC_END_DT)) |>
@@ -51,22 +56,47 @@ claims <- select(otl, all_of(claims_vars)) |>
 #   1: HHHHHHHdA4nd4CA HHHHd4C7eAennB7       2018-08-30       2018-08-30                01         46255
 # 2: HHHHHHHdA4nd4CA HHHHd4C7eAennB7       2018-08-30       2018-08-30                01         46945
 
-claims <- claims |>
+otl <- otl |>
   group_by(CLM_ID) |>
-  mutate(LINE_SRVC_BGN_DT = min(LINE_SRVC_BGN_DT),
-         LINE_SRVC_END_DT = max(LINE_SRVC_END_DT),
-         LINE_PRCDR_CD_SYS = list(unique(LINE_PRCDR_CD_SYS)),
-         LINE_PRCDR_CD = list(unique(LINE_PRCDR_CD))) |> # combining all procedure codes into a list
+  mutate(SRVC_BGN_DT = min(LINE_SRVC_BGN_DT),
+         SRVC_END_DT = max(LINE_SRVC_END_DT),
+         PRCDR_CD = list(unique(LINE_PRCDR_CD))) |> # combining all procedure codes into a list
+  slice(1) |>
   ungroup() |>
-  distinct()
+  select(BENE_ID, CLM_ID, SRVC_BGN_DT, SRVC_END_DT, PRCDR_CD)
   
 
+##### Searching IPH file for surgeries
+
+iph_vars <- c("BENE_ID", "CLM_ID", "SRVC_BGN_DT", "SRVC_END_DT", "PRCDR_CD_1","PRCDR_CD_2", "PRCDR_CD_3", "PRCDR_CD_4", "PRCDR_CD_5", "PRCDR_CD_6")
+
+iph <- select(iph, all_of(iph_vars)) |>
+  filter(if_any(starts_with("PRCDR_CD"),  ~. %in% codes)) |>
+  filter(!is.na(BENE_ID)) |>
+  mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
+  collect()
+  
+iph <- iph |>
+  pivot_longer(cols = starts_with("PRCDR_CD"),
+               names_to = "PRCDR_num",
+               values_to = "PRCDR_CD") |>
+  filter(PRCDR_CD %in% codes) |>
+  group_by(CLM_ID) |>
+  mutate(PRCDR_CD = list(PRCDR_CD)) |>
+  slice(1) |>
+  ungroup() |>
+  select(BENE_ID, CLM_ID, SRVC_BGN_DT, SRVC_END_DT, PRCDR_CD)
+
+
 # calculate a washout period of 6 months before surgery
-claims <- claims |>
-  rename(surgery_dt = LINE_SRVC_BGN_DT,
-         discharge_dt = LINE_SRVC_END_DT) |>
+claims <- otl |>
+  rbind(iph) |>
+  rename(surgery_dt = SRVC_BGN_DT,
+         discharge_dt = SRVC_END_DT) |>
   mutate(washout_start_dt = surgery_dt %m-% days(182)) |>
   relocate(washout_start_dt, .before = surgery_dt)
 
 
 saveRDS(claims, "/mnt/general-data/disability/post_surgery_opioid_use/intermediate/surgery_claims.rds")
+
+

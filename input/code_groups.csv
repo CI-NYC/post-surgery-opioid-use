@@ -1,0 +1,112 @@
+"code_type","code","definition","group","Freq"
+"ICD10","0D16479","Bypass Stomach to Duodenum with Autologous Tissue Substitute, Percutaneous Endoscopic Approach","Bypass Stomach to Duodenum",65
+"ICD10","0D164J9","Bypass Stomach to Duodenum with Synthetic Substitute, Percutaneous Endoscopic Approach","Bypass Stomach to Duodenum",65
+"ICD10","0D164K9","Bypass Stomach to Duodenum with Nonautologous Tissue Substitute, Percutaneous Endoscopic Approach","Bypass Stomach to Duodenum",65
+"ICD10","0D164Z9","Bypass Stomach to Duodenum, Percutaneous Endoscopic Approach","Bypass Stomach to Duodenum",65
+"ICD10","0D16079","Bypass Stomach to Duodenum with Autologous Tissue Substitute, Open Approach","Bypass Stomach to Duodenum",65
+"ICD10","0D160J9","Bypass Stomach to Duodenum with Synthetic Substitute, Open Approach","Bypass Stomach to Duodenum",65
+"ICD10","0D160K9","Bypass Stomach to Duodenum with Nonautologous Tissue Substitute, Open Approach","Bypass Stomach to Duodenum",65
+"ICD10","0D160Z9","Bypass Stomach to Duodenum, Open Approach","Bypass Stomach to Duodenum",65
+"ICD10","0D16879","Bypass Stomach to Duodenum with Autologous Tissue Substitute, Via Natural or Artificial Opening Endoscopic","Bypass Stomach to Duodenum",65
+"ICD10","0D168J9","Bypass Stomach to Duodenum with Synthetic Substitute, Via Natural or Artificial Opening Endoscopic","Bypass Stomach to Duodenum",65
+"ICD10","0D168K9","Bypass Stomach to Duodenum with Nonautologous Tissue Substitute, Via Natural or Artificial Opening Endoscopic","Bypass Stomach to Duodenum",65
+"ICD10","0D168Z9","Bypass Stomach to Duodenum, Via Natural or Artificial Opening Endoscopic","Bypass Stomach to Duodenum",65
+"ICD10","0D1647A","Bypass Stomach to Jejunum with Autologous Tissue Substitute, Percutaneous Endoscopic Approach","Bypass Stomach to Jejunum",5321
+"ICD10","0D164JA","Bypass Stomach to Jejunum with Synthetic Substitute, Percutaneous Endoscopic Approach","Bypass Stomach to Jejunum",5321
+"ICD10","0D164KA","Bypass Stomach to Jejunum with Nonautologous Tissue Substitute, Percutaneous Endoscopic Approach","Bypass Stomach to Jejunum",5321
+"ICD10","0D164ZA","Bypass Stomach to Jejunum, Percutaneous Endoscopic Approach","Bypass Stomach to Jejunum",5321
+"ICD10","0D1607A","Bypass Stomach to Jejunum with Autologous Tissue Substitute, Open Approach","Bypass Stomach to Jejunum",5321
+"ICD10","0D160JA","Bypass Stomach to Jejunum with Synthetic Substitute, Open Approach","Bypass Stomach to Jejunum",5321
+"ICD10","0D160KA","Bypass Stomach to Jejunum with Nonautologous Tissue Substitute, Open Approach","Bypass Stomach to Jejunum",5321
+"ICD10","0D160ZA","Bypass Stomach to Jejunum, Open Approach","Bypass Stomach to Jejunum",5321
+"ICD10","0D1687A","Bypass Stomach to Jejunum with Autologous Tissue Substitute, Via Natural or Artificial Opening Endoscopic","Bypass Stomach to Jejunum",5321
+"ICD10","0D168JA","Bypass Stomach to Jejunum with Synthetic Substitute, Via Natural or Artificial Opening Endoscopic","Bypass Stomach to Jejunum",5321
+"ICD10","0D168KA","Bypass Stomach to Jejunum with Nonautologous Tissue Substitute, Via Natural or Artificial Opening Endoscopic","Bypass Stomach to Jejunum",5321
+"ICD10","0D168ZA","Bypass Stomach to Jejunum, Via Natural or Artificial Opening Endoscopic","Bypass Stomach to Jejunum",5321
+"CPT","64721","Carpal tunnel release","Carpal tunnel release",19604
+"CPT","47564","Cholecystectomy with exploration of common duct","Cholecystectomy",69189
+"CPT","47563","Cholecystectomy with cholangiography","Cholecystectomy",69189
+"CPT","47562","Laparoscopy, surgical; cholecystectomy","Cholecystectomy",69189
+"ICD10","0G5R0ZZ","Destruction of Parathyroid Gland, Open Approach","Destruction of Parathyroid Gland",NA
+"ICD10","0G5R3ZZ","Destruction of Parathyroid Gland, Percutaneous Approach","Destruction of Parathyroid Gland",NA
+"ICD10","0G5R4ZZ","Destruction of Parathyroid Gland, Percutaneous Endoscopic Approach","Destruction of Parathyroid Gland",NA
+"ICD10","0GBR0ZZ","Excision of Parathyroid Gland, Open Approach","Excision of Parathyroid Gland",6
+"ICD10","0GBR3ZZ","Excision of Parathyroid Gland, Percutaneous Approach","Excision of Parathyroid Gland",6
+"ICD10","0GBR4ZZ","Excision of Parathyroid Gland, Percutaneous Endoscopic Approach","Excision of Parathyroid Gland",6
+"ICD10","0DB64Z3","Excision of Stomach, Percutaneous Endoscopic Approach, Vertical","Excision of Stomach",15816
+"CPT","46250","Hemorrhoidectomy, external, complete","Hemorrhoidectomy",7223
+"CPT","46260","Hemorrhoidectomy, internal and external, complete or extensive","Hemorrhoidectomy",7223
+"CPT","46257","Hemorrhoidectomy, internal and external, simple; with fissurectomy","Hemorrhoidectomy",7223
+"CPT","46258","Hemorrhoidectomy, internal and external, simple; with fistulectomy with or without fissurectomy","Hemorrhoidectomy",7223
+"CPT","46261","Hemorrhoidectomy, internal and external, complex or extensive; with fissurectomy","Hemorrhoidectomy",7223
+"CPT","46262","Hemorrhoidectomy, internal and external, complex or extensive; with fistulectomy, with or without fissurectomy","Hemorrhoidectomy",7223
+"CPT","46255","Hemorrhoidectomy, internal and external, simple","Hemorrhoidectomy",7223
+"ICD10","3E0G3GC","Introduction of Other Therapeutic Substance into Upper GI, Percutaneous Approach","Introduction of Other Therapeutic Substance into Upper GI",4
+"ICD10","3E0G4GC","Introduction of Other Therapeutic Substance into Upper GI, Percutaneous Endoscopic Approach","Introduction of Other Therapeutic Substance into Upper GI",4
+"CPT","46221","Ligation of hemorrhoid(s)","Ligation of hemorrhoids",1979
+"CPT","46945","Ligation of internal hemorrhoids; single procedure","Ligation of hemorrhoids",1979
+"CPT","46946","Ligation of internal hemorrhoids; multiple procedures","Ligation of hemorrhoids",1979
+"CPT","37785","Ligation, division and/or excision of varicose vein cluster(s)","Ligation, division and/or excision of varicose vein cluster(s)",132
+"CPT","60500","Parathyroidectomy or exploration of parathyroids","Parathyroidectomy",1367
+"CPT","60240","Removal of thyroid","Removal of thyroid",3418
+"ICD10","0WQF0ZZ","Repair Abdominal Wall, Open Approach","Repair Abdominal Wall",2041
+"ICD10","0WQF3ZZ","Repair Abdominal Wall, Percutaneous Approach","Repair Abdominal Wall",2041
+"ICD10","0WQF4ZZ","Repair Abdominal Wall, Percutaneous Endoscopic Approach","Repair Abdominal Wall",2041
+"ICD10","0BQT4ZZ","Repair Diaphragm, Percutaneous Endoscopic Approach","Repair Diaphragm",412
+"ICD10","0BQT0ZZ","Repair Diaphragm, Open Approach","Repair Diaphragm",412
+"ICD10","0BQT3ZZ","Repair Diaphragm, Percutaneous Approach","Repair Diaphragm",412
+"ICD10","0DQ64ZZ","Repair Stomach, Percutaneous Endoscopic Approach","Repair Stomach",48
+"ICD10","0BRT47Z","Replacement of Diaphragm with Autologous Tissue Substitute, Percutaneous Endoscopic Approach","Replacement of Diaphragm",NA
+"ICD10","0BRT4JZ","Replacement of Diaphragm with Synthetic Substitute, Percutaneous Endoscopic Approach","Replacement of Diaphragm",NA
+"ICD10","0BRT4KZ","Replacement of Diaphragm with Nonautologous Tissue Substitute, Percutaneous Endoscopic Approach","Replacement of Diaphragm",NA
+"ICD10","0BRT07Z","Replacement of Diaphragm with Autologous Tissue Substitute, Open Approach","Replacement of Diaphragm",NA
+"ICD10","0BRT0JZ","Replacement of Diaphragm with Synthetic Substitute, Open Approach","Replacement of Diaphragm",NA
+"ICD10","0BRT0KZ","Replacement of Diaphragm with Nonautologous Tissue Substitute, Open Approach","Replacement of Diaphragm",NA
+"ICD10","0DS60ZZ","Reposition Stomach, Open Approach","Reposition Stomach",12
+"ICD10","0DS64ZZ","Reposition Stomach, Percutaneous Endoscopic Approach","Reposition Stomach",12
+"ICD10","0DTK0ZZ","Resection of Ascending Colon, Open Approach","Resection of Ascending Colon",33
+"ICD10","0UTC4ZZ","Resection of Cervix, Percutaneous Endoscopic Approach","Resection of Cervix",154
+"ICD10","0UTC0ZZ","Resection of Cervix, Open Approach","Resection of Cervix",154
+"ICD10","0DTE4ZZ","Resection of Large Intestine, Percutaneous Endoscopic Approach","Resection of Large Intestine",117
+"ICD10","0DTE0ZZ","Resection of Large Intestine, Open Approach","Resection of Large Intestine",117
+"ICD10","0DTE7ZZ","Resection of Large Intestine, Via Natural or Artificial Opening","Resection of Large Intestine",117
+"ICD10","0DTE8ZZ","Resection of Large Intestine, Via Natural or Artificial Opening Endoscopic","Resection of Large Intestine",117
+"ICD10","0DTF0ZZ","Resection of Right Large Intestine, Open Approach","Resection of Right Large Intestine",426
+"ICD10","0DTF7ZZ","Resection of Right Large Intestine, Via Natural or Artificial Opening","Resection of Right Large Intestine",426
+"ICD10","0DTF8ZZ","Resection of Right Large Intestine, Via Natural or Artificial Opening Endoscopic","Resection of Right Large Intestine",426
+"ICD10","0UT94ZL","Resection of Uterus, Supracervical, Percutaneous Endoscopic Approach","Resection of Uterus",9642
+"ICD10","0UT90ZL","Resection of Uterus, Supracervical, Open Approach","Resection of Uterus",9642
+"ICD10","0UT94ZZ","Resection of Uterus, Percutaneous Endoscopic Approach","Resection of Uterus",9642
+"ICD10","0UT90ZZ","Resection of Uterus, Open Approach","Resection of Uterus",9642
+"ICD10","0UT9FZL","Resection of Uterus, Supracervical, Via Natural or Artificial Opening With Percutaneous Endoscopic Assistance","Resection of Uterus",9642
+"ICD10","0UT9FZZ","Resection of Uterus, Via Natural or Artificial Opening With Percutaneous Endoscopic Assistance","Resection of Uterus",9642
+"ICD10","0DV40CZ","Restriction of Esophagogastric Junction with Extraluminal Device, Open Approach","Restriction of Esophagogastric Junction",551
+"ICD10","0DV40DZ","Restriction of Esophagogastric Junction with Intraluminal Device, Open Approach","Restriction of Esophagogastric Junction",551
+"ICD10","0DV40ZZ","Restriction of Esophagogastric Junction, Open Approach","Restriction of Esophagogastric Junction",551
+"ICD10","0DV43CZ","Restriction of Esophagogastric Junction with Extraluminal Device, Percutaneous Approach","Restriction of Esophagogastric Junction",551
+"ICD10","0DV43DZ","Restriction of Esophagogastric Junction with Intraluminal Device, Percutaneous Approach","Restriction of Esophagogastric Junction",551
+"ICD10","0DV43ZZ","Restriction of Esophagogastric Junction, Percutaneous Approach","Restriction of Esophagogastric Junction",551
+"ICD10","0DV47DZ","Restriction of Esophagogastric Junction with Intraluminal Device, Via Natural or Artificial Opening","Restriction of Esophagogastric Junction",551
+"ICD10","0DV47ZZ","Restriction of Esophagogastric Junction, Via Natural or Artificial Opening","Restriction of Esophagogastric Junction",551
+"ICD10","0DV48DZ","Restriction of Esophagogastric Junction with Intraluminal Device, Via Natural or Artificial Opening Endoscopic","Restriction of Esophagogastric Junction",551
+"ICD10","0DV48ZZ","Restriction of Esophagogastric Junction, Via Natural or Artificial Opening Endoscopic","Restriction of Esophagogastric Junction",551
+"ICD10","0DV44CZ","Restriction of Esophagogastric Junction with Extraluminal Device, Percutaneous Endoscopic Approach","Restriction of Esophagogastric Junction",551
+"ICD10","0DV44DZ","Restriction of Esophagogastric Junction with Intraluminal Device, Percutaneous Endoscopic Approach","Restriction of Esophagogastric Junction",551
+"ICD10","0DV44ZZ","Restriction of Esophagogastric Junction, Percutaneous Endoscopic Approach","Restriction of Esophagogastric Junction",551
+"ICD10","0DV64CZ","Restriction of Stomach with Extraluminal Device, Percutaneous Endoscopic Approach","Restriction of Stomach",45
+"ICD10","0WUF07Z","Supplement Abdominal Wall with Autologous Tissue Substitute, Open Approach","Supplement Abdominal Wall",2519
+"ICD10","0WUF0JZ","Supplement Abdominal Wall with Synthetic Substitute, Open Approach","Supplement Abdominal Wall",2519
+"ICD10","0WUF0KZ","Supplement Abdominal Wall with Nonautologous Tissue Substitute, Open Approach","Supplement Abdominal Wall",2519
+"ICD10","0WUF47Z","Supplement Abdominal Wall with Autologous Tissue Substitute, Percutaneous Endoscopic Approach","Supplement Abdominal Wall",2519
+"ICD10","0WUF4JZ","Supplement Abdominal Wall with Synthetic Substitute, Percutaneous Endoscopic Approach","Supplement Abdominal Wall",2519
+"ICD10","0WUF4KZ","Supplement Abdominal Wall with Nonautologous Tissue Substitute, Percutaneous Endoscopic Approach","Supplement Abdominal Wall",2519
+"ICD10","0BUT47Z","Supplement Diaphragm with Autologous Tissue Substitute, Percutaneous Endoscopic Approach","Supplement Diaphragm",139
+"ICD10","0BUT4JZ","Supplement Diaphragm with Synthetic Substitute, Percutaneous Endoscopic Approach","Supplement Diaphragm",139
+"ICD10","0BUT4KZ","Supplement Diaphragm with Nonautologous Tissue Substitute, Percutaneous Endoscopic Approach","Supplement Diaphragm",139
+"ICD10","0BUT07Z","Supplement Diaphragm with Autologous Tissue Substitute, Open Approach","Supplement Diaphragm",139
+"ICD10","0BUT0JZ","Supplement Diaphragm with Synthetic Substitute, Open Approach","Supplement Diaphragm",139
+"ICD10","0BUT0KZ","Supplement Diaphragm with Nonautologous Tissue Substitute, Open Approach","Supplement Diaphragm",139
+"CPT","52480","Transurethral incision of the prostate","Transurethral procedure on the prostate",1054
+"CPT","52601","Transurethral resection of the prostate","Transurethral procedure on the prostate",1054
+"CPT","52630","Transurethral resection of residual or regrowth of obstructive prostate tissue including control of postoperative bleeding, complete","Transurethral procedure on the prostate",1054
+"CPT","44970","Laparoscopy, appendectomy","appendectomy",20728

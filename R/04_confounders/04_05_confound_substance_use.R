@@ -9,6 +9,7 @@ library(tidyverse)
 library(lubridate)
 library(arrow)
 library(data.table)
+library(yaml)
 
 cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
 

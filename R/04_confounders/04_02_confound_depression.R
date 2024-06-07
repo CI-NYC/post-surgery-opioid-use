@@ -25,7 +25,7 @@ parquet_files <- grep("\\.parquet$", files, value = TRUE)
 oth <- open_dataset(file.path(src_root, parquet_files))
 
 # read in all icd anxiety codes
-depression_icds <- read_csv("~/medicaid/post_surgery_opioid_use/R/04_confounders/depression_icd10_20230323.csv", col_names = F) |>
+depression_icds <- read_csv("~/medicaid/post_surgery_opioid_use/input/depression_icd10_20230323.csv", col_names = F) |>
   rename(ICD9_OR_10 = X1)
 
 ############################################################################

@@ -20,12 +20,12 @@ surgeries <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/inter
 # otl and rxl data for finding opioid claims
 src_root <- "/mnt/processed-data/disability"
 
-# Read in OTL (Other services line) 
+# Read in IPH (Other services line) 
 files <- paste0(list.files(src_root, pattern = "TAFIPH", recursive = TRUE))
 parquet_files <- grep("\\.parquet$", files, value = TRUE)
 iph <- open_dataset(file.path(src_root, parquet_files))
 
-# Read in RXL (pharmacy line)
+# Read in OTH (pharmacy line)
 files <- paste0(list.files(src_root, pattern = "TAFOTH", recursive = TRUE))
 parquet_files <- grep("\\.parquet$", files, value = TRUE)
 oth <- open_dataset(file.path(src_root, parquet_files))

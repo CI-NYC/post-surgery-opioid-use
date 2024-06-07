@@ -68,7 +68,7 @@ hillary <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcome
 
 
 cohort <- cohort |>
-  select(BENE_ID, LINE_PRCDR_CD, followup_start_dt) |>
+  select(BENE_ID, followup_start_dt) |>
   left_join(months_to_dropout |> select(BENE_ID, enrolled_until)) |>
   left_join(met |> select(BENE_ID, met_start_dt)) |>
   left_join(nal |> select(BENE_ID, nal_start_dt)) |>
@@ -76,7 +76,7 @@ cohort <- cohort |>
   left_join(poison |> select(BENE_ID, oud_poison_dt)) |>
   left_join(hillary |> select(BENE_ID, oud_hillary_dt))
 
-for (month in 1:18){
+for (month in 1:24){
   print(paste("Processing month:", month))
   tic()
   censor_column <- paste0("C_", month)
@@ -88,13 +88,14 @@ for (month in 1:18){
   
   cohort <- cohort |>
     mutate(
-      {{censor_column}} := case_when(enrolled_until <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
-           {{OD_column}} := case_when(oud_poison_dt <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
-           {{OUD_column}} := case_when(oud_hillary_dt <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
-           {{met_column}} := case_when(met_start_dt <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
-           {{nal_column}} := case_when(nal_start_dt <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
-           {{bup_column}} := case_when(bup_start_dt <= followup_start_dt %m+% months(month) ~ 1, TRUE ~ 0),
-           )
+      {{censor_column}} := ifelse(enrolled_until <= followup_start_dt %m+% months(month), 1, 0),
+      {{OD_column}} := ifelse(!is.na(oud_poison_dt) & oud_poison_dt <= followup_start_dt %m+% months(month), 1, 0),
+      {{OUD_column}} := ifelse(!is.na(oud_hillary_dt) & oud_hillary_dt <= followup_start_dt %m+% months(month), 1, 0),
+      {{met_column}} := ifelse(!is.na(met_start_dt) & met_start_dt <= followup_start_dt %m+% months(month), 1, 0),
+      {{nal_column}} := ifelse(!is.na(nal_start_dt) & nal_start_dt <= followup_start_dt %m+% months(month), 1, 0),
+      {{bup_column}} := ifelse(!is.na(bup_start_dt) & bup_start_dt <= followup_start_dt %m+% months(month), 1, 0),
+    )
+  toc()
 }
 
 

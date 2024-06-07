@@ -14,7 +14,7 @@ alcohol_codes <- definitions_table |>
   filter(grepl("^F10[1-2]", ICD10))
 
 substance_codes <- definitions_table |>
-  filter(grepl("^F1[1-9][1-2]", ICD10)) |>
+  filter(grepl("^F1[2-9][1-2]", ICD10)) |>
   filter(!grepl("^F17", ICD10))
 
 smoking_codes <- definitions_table |>
