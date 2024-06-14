@@ -27,4 +27,6 @@ cohort <- cohort |>
 
 # expecting an 80 - 20 percent split between minor/major. But it's nearly 100% minor in my cohort
 
+cohort <- cohort |>
+  select("BENE_ID","surgery_major")
 saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/confounders/confound_major_surgery.rds")

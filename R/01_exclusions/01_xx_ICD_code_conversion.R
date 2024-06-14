@@ -135,3 +135,5 @@ code_groups <- read.csv("~/medicaid/post_surgery_opioid_use/input/code_groups.cs
                    rep("Transurethral procedure on the prostate",3),
                    rep("Removal of thyroid/parathyroid",2),
                    "Carpal tunnel release"))
+
+write.csv(code_groups, "~/medicaid/post_surgery_opioid_use/input/code_groups.csv", row.names = F)

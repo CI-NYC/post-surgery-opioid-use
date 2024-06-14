@@ -5,6 +5,7 @@
 # Notes:
 # -------------------------------------
 library(dplyr)
+library(tidylog)
 
 cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
 age <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/exclusion/cohort_exclusion_age.rds") |> select(BENE_ID, CLM_ID, age_enrollment)
@@ -20,7 +21,7 @@ depression <- readRDS(file.path(confound_dir, "confounder_depression.rds"))
 bipolar <- readRDS(file.path(confound_dir, "confounder_bipolar.rds"))
 substance <- readRDS(file.path(confound_dir, "confounder_alc_subst_smoke.rds"))
 pain <- readRDS(file.path(confound_dir, "confounder_pain.rds"))
-surgery_type <- readRDS(file.path(confound_dir, "confound_major_surgery_specific.rds"))
+surgery_type <- readRDS(file.path(confound_dir, "confound_major_surgery.rds"))
 
 cohort <- cohort |>
   left_join(age, by = c("BENE_ID", "CLM_ID")) |>
@@ -31,9 +32,10 @@ cohort <- cohort |>
   left_join(bipolar, by = "BENE_ID") |>
   left_join(substance, by = "BENE_ID") |>
   left_join(pain, by = "BENE_ID") |>
-  mutate(has_anxiety = case_when(is.na(has_anxiety) ~ 0, TRUE ~ has_anxiety),
-         has_depression = case_when(is.na(has_depression) ~ 0, TRUE ~ has_depression),
-         has_bipolar = case_when(is.na(has_bipolar) ~ 0, TRUE ~ has_bipolar))
+  left_join(surgery_type, by = "BENE_ID") |>
+  mutate(has_anxiety = replace(has_anxiety, is.na(has_anxiety), 0),
+         has_depression = replace(has_depression, is.na(has_depression), 0),
+         has_bipolar = replace(has_bipolar, is.na(has_bipolar), 0))
 
 
 saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/final/confounders_merged.rds")

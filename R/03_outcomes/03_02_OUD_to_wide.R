@@ -76,7 +76,32 @@ cohort <- cohort |>
   left_join(poison |> select(BENE_ID, oud_poison_dt)) |>
   left_join(hillary |> select(BENE_ID, oud_hillary_dt))
 
-for (month in 1:24){
+# for (month in 1:24){
+#   print(paste("Processing month:", month))
+#   tic()
+#   censor_column <- paste0("C_", month)
+#   OD_column <- paste0("Y1_", month)
+#   OUD_column <- paste0("Y2_", month)
+#   met_column <- paste0("Y3_", month)
+#   nal_column <- paste0("Y4_", month)
+#   bup_column <- paste0("Y5_", month)
+# 
+#   cohort <- cohort |>
+#     mutate(
+#       {{censor_column}} := ifelse(enrolled_until <= followup_start_dt %m+% months(month), 1, 0),
+#       {{OD_column}} := ifelse(!is.na(oud_poison_dt) & oud_poison_dt <= followup_start_dt %m+% months(month), 1, 0),
+#       {{OUD_column}} := ifelse(!is.na(oud_hillary_dt) & oud_hillary_dt <= followup_start_dt %m+% months(month), 1, 0),
+#       {{met_column}} := ifelse(!is.na(met_start_dt) & met_start_dt <= followup_start_dt %m+% months(month), 1, 0),
+#       {{nal_column}} := ifelse(!is.na(nal_start_dt) & nal_start_dt <= followup_start_dt %m+% months(month), 1, 0),
+#       {{bup_column}} := ifelse(!is.na(bup_start_dt) & bup_start_dt <= followup_start_dt %m+% months(month), 1, 0),
+#     )
+#   toc()
+# }
+# 
+# 
+# saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide.rds")
+
+for (month in 1:4){
   print(paste("Processing month:", month))
   tic()
   censor_column <- paste0("C_", month)
@@ -85,18 +110,56 @@ for (month in 1:24){
   met_column <- paste0("Y3_", month)
   nal_column <- paste0("Y4_", month)
   bup_column <- paste0("Y5_", month)
-  
+
   cohort <- cohort |>
     mutate(
-      {{censor_column}} := ifelse(enrolled_until <= followup_start_dt %m+% months(month), 1, 0),
-      {{OD_column}} := ifelse(!is.na(oud_poison_dt) & oud_poison_dt <= followup_start_dt %m+% months(month), 1, 0),
-      {{OUD_column}} := ifelse(!is.na(oud_hillary_dt) & oud_hillary_dt <= followup_start_dt %m+% months(month), 1, 0),
-      {{met_column}} := ifelse(!is.na(met_start_dt) & met_start_dt <= followup_start_dt %m+% months(month), 1, 0),
-      {{nal_column}} := ifelse(!is.na(nal_start_dt) & nal_start_dt <= followup_start_dt %m+% months(month), 1, 0),
-      {{bup_column}} := ifelse(!is.na(bup_start_dt) & bup_start_dt <= followup_start_dt %m+% months(month), 1, 0),
+      {{censor_column}} := ifelse(enrolled_until <= followup_start_dt %m+% months(month*6), 0, 1),
+      {{OD_column}} := ifelse(!is.na(oud_poison_dt) & oud_poison_dt <= followup_start_dt %m+% months(month*6), 1, 0),
+      {{OUD_column}} := ifelse(!is.na(oud_hillary_dt) & oud_hillary_dt <= followup_start_dt %m+% months(month*6), 1, 0),
+      {{met_column}} := ifelse(!is.na(met_start_dt) & met_start_dt <= followup_start_dt %m+% months(month*6), 1, 0),
+      {{nal_column}} := ifelse(!is.na(nal_start_dt) & nal_start_dt <= followup_start_dt %m+% months(month*6), 1, 0),
+      {{bup_column}} := ifelse(!is.na(bup_start_dt) & bup_start_dt <= followup_start_dt %m+% months(month*6), 1, 0),
     )
   toc()
 }
 
 
-saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide.rds")
+saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos.rds")
+
+
+####### UNCOMMENT BOTTOM PORTION OF NEEDED
+# cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos.rds")
+
+
+# Carrying forward last value if someone has been censored.
+# Previously, there was a problem where some small number of people would be re-enrolled, and therefore, their outcome variables might change, even though they had been censored earlier.
+# This should not be allowed, so I changed it, for those who were censored, to overwrite all later values with their last uncensored value.
+
+
+for (i in 1:4){
+  print(paste("Processing month:", month))
+
+  tic()
+  censor_column <- paste0("C_", i)
+  last_uncensored <- c(paste0("Y1_", i),
+                    paste0("Y2_", i),
+                    paste0("Y3_", i),
+                    paste0("Y4_", i),
+                    paste0("Y5_", i))
+
+  censored <- which(cohort[,censor_column] == 0)
+
+  for (j in i:4){
+    carry_forward_columns <- c(paste0("Y1_", j),
+                               paste0("Y2_", j),
+                               paste0("Y3_", j),
+                               paste0("Y4_", j),
+                               paste0("Y5_", j))
+    cohort[censored, carry_forward_columns] <- cohort[censored, last_uncensored]
+
+  }
+
+  toc()
+}
+
+saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos.rds")

@@ -17,6 +17,8 @@ days_continuous <- readRDS(file.path(opioid_dir, "surgery_opioids_days_continuou
 
 cohort <- mme |>
   left_join(days_supplied) |>
-  left_join(days_continuous) 
+  left_join(days_continuous)
+
+cohort$days_of_continuous_use <- sapply(cohort$days_of_continuous_use, max)
 
 saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/final/exposures_merged.rds")

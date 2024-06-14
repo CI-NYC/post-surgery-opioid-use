@@ -61,7 +61,7 @@ calculate_mean_daily_dose <- function(data) {
   ][date <= washout_date_limit, ]  # Filter rows based on date limit
   
   long[, .(total_mme_strength = sum(mme_strength_per_day, na.rm = TRUE)), by = .(date)
-  ][, .(mediator_mean_daily_dose_mme = mean(total_mme_strength))]
+  ][, .(mean_daily_dose_mme = mean(total_mme_strength))]
 }
 
 plan(multisession, workers = 10)

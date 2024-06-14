@@ -61,10 +61,10 @@ find_substance <- function(which_substance, new_column_name) {
 has_alcohol_abuse <- find_substance("Alcohol", "has_alcohol_abuse")
 
 ### OTHER SUBSTANCE ABUSE
-has_substance_abuse <- find_substance("Other substances", "has_substance_abuse")
+has_other_substance_abuse <- find_substance("Other substances", "has_other_substance_abuse")
 
 ### SMOKING HISTORY
-has_smoking_history <- find_substance("Smoking", "has_smoking_history")
+has_nicotine_dependance <- find_substance("Smoking", "has_nicotine_dependance")
 
 
 
@@ -72,11 +72,11 @@ has_smoking_history <- find_substance("Smoking", "has_smoking_history")
 cohort <- cohort |>
   select(BENE_ID) |>
   left_join(has_alcohol_abuse) |>
-  left_join(has_substance_abuse) |>
-  left_join(has_smoking_history) |>
-  mutate(has_alcohol_abuse = case_when(is.na(has_alcohol_abuse) ~ 0, TRUE ~ has_alcohol_abuse),
-         has_substance_abuse = case_when(is.na(has_substance_abuse) ~ 0, TRUE ~ has_substance_abuse),
-         has_smoking_history = case_when(is.na(has_smoking_history) ~ 0, TRUE ~ has_smoking_history))
+  left_join(has_other_substance_abuse) |>
+  left_join(has_nicotine_dependance) |>
+  mutate(has_alcohol_abuse = replace(has_alcohol_abuse, is.na(has_alcohol_abuse), 0),
+         has_other_substance_abuse = replace(has_other_substance_abuse, is.na(has_other_substance_abuse), 0),
+         has_nicotine_dependance = replace(has_nicotine_dependance, is.na(has_nicotine_dependance), 0))
 
 saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/confounders/confounder_alc_subst_smoke.rds")
 

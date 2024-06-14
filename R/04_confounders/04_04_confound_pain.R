@@ -7,6 +7,7 @@
 
 library(tidyverse)
 library(lubridate)
+library(tidylog)
 
 cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
 
@@ -45,13 +46,13 @@ has_pain <- cohort |>
 cohort <- cohort |>
   select(BENE_ID) |>
   left_join(has_pain) |>
-  mutate(has_pain_back = case_when(is.na(has_pain_back) ~ 0, TRUE ~ has_pain_back),
-         has_pain_neck = case_when(is.na(has_pain_neck) ~ 0, TRUE ~ has_pain_neck),
-         has_pain_arthritis = case_when(is.na(has_pain_arthritis) ~ 0, TRUE ~ has_pain_arthritis),
-         has_pain_neuro = case_when(is.na(has_pain_neuro) ~ 0, TRUE ~ has_pain_neuro),
-         has_pain_headache = case_when(is.na(has_pain_headache) ~ 0, TRUE ~ has_pain_headache),
-         has_pain_misc = case_when(is.na(has_pain_misc) ~ 0, TRUE ~ has_pain_misc),
-         has_pain_back_neck_unspecified = case_when(is.na(has_pain_back_neck_unspecified) ~ 0, TRUE ~ has_pain_back_neck_unspecified))
+  mutate(has_pain_back = replace(has_pain_back, is.na(has_pain_back), 0),
+         has_pain_neck = replace(has_pain_neck, is.na(has_pain_neck), 0),
+         has_pain_arthritis = replace(has_pain_arthritis, is.na(has_pain_arthritis), 0),
+         has_pain_neuro = replace(has_pain_neuro, is.na(has_pain_neuro), 0),
+         has_pain_headache = replace(has_pain_headache, is.na(has_pain_headache), 0),
+         has_pain_misc = replace(has_pain_misc, is.na(has_pain_misc), 0),
+         has_pain_back_neck_unspecified = replace(has_pain_back_neck_unspecified, is.na(has_pain_back_neck_unspecified), 0))
 
 
 saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/confounders/confounder_pain.rds")
