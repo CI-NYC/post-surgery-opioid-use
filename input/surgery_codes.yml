@@ -21,6 +21,37 @@ Surgery:
         '46262': Hemorrhoidectomy, internal and external, complex or extensive; with fistulectomy, with or without fissurectomy
         '46255': Hemorrhoidectomy, internal and external, simple
         '52630': Transurethral resection of residual or regrowth of obstructive prostate tissue including control of postoperative bleeding, complete
+        
+        # From Sun paper:
+        '27447': Total Knee Arthroplasty
+        '27130': Total Hip Arthroplasty
+        '47600': Open Cholecystectomy
+        '47605': Open Cholecystectomy
+        '47610': Open Cholecystectomy
+        '44979': Laparoscopic Appendectomy
+        '44950': Open Appendectomy
+        '44960': Open Appendectomy
+        '59510': Cesarean Section
+        '59514': Cesarean Section
+        '59515': Cesarean Section
+        '31237': FESS
+        '31240': FESS
+        '31254': FESS
+        '31255': FESS
+        '31256': FESS
+        '31267': FESS
+        '31276': FESS
+        '31287': FESS
+        '31288': FESS
+        '66982': Cataract Surgery
+        '66983': Cataract Surgery
+        '66984': Cataract Surgery
+        '52612': TURP
+        '52614': TURP
+        '19301': Simple Mastectomy
+        '19302': Simple Mastectomy
+        '19303': Simple Mastectomy
+        '19180': Simple Mastectomy
     ICD10:
         # See conversions.R for details on how these codes were obtained
         "0G5R0ZZ": "Destruction of Parathyroid Gland, Open Approach"

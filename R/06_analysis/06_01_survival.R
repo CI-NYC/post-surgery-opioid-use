@@ -47,6 +47,14 @@ dat_lmtp <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/
 #            {{bup_column}})
 # }
 
+dat_lmtp <- dat_lmtp |>
+  mutate(Y6_1 = ifelse(Y3_1 == 1 | Y4_1 == 1 | Y5_1 == 1, 1, 0),
+         Y6_2 = ifelse(Y3_2 == 1 | Y4_2 == 1 | Y5_2 == 1, 1, 0),
+         Y6_3 = ifelse(Y3_3 == 1 | Y4_3 == 1 | Y5_3 == 1, 1, 0),
+         Y6_4 = ifelse(Y3_4 == 1 | Y4_4 == 1 | Y5_4 == 1, 1, 0))
+
+
+
 # create shifted data set
 shift_1 <- dat_lmtp |> 
   mutate(mean_daily_dose_mme = 0.8*mean_daily_dose_mme,
@@ -76,7 +84,7 @@ libs <- c("mean", "glm", "xgboost", "earth")
 # shift_1 <- shift_1[1:10000,]
 
 
-for (Y in c("Y1","Y2","Y3","Y4","Y5")){
+for (Y in c("Y6","Y1","Y2")){
   set.seed(1)
   # Y <- c(paste0(Y,"_1"),
   #        paste0(Y,"_2"),
@@ -85,7 +93,6 @@ for (Y in c("Y1","Y2","Y3","Y4","Y5")){
   
   # dat_lmtp <- event_locf(dat_lmtp, Y)
   
-  tic()
   # fit1 <-
   #   progressr::with_progress({
   #     lmtp_tmle(dat_lmtp_sample,
@@ -111,6 +118,8 @@ for (Y in c("Y1","Y2","Y3","Y4","Y5")){
   
   # intervention results
   for (t in 1:tau) {
+    tic()
+    print(paste0("Processing outcome: ", Y, ", type: intervention", ", t: ", t))
     results_interv[[t]] <- 
       progressr::with_progress({
         lmtp_tmle(
@@ -124,15 +133,18 @@ for (Y in c("Y1","Y2","Y3","Y4","Y5")){
         learners_trt = libs,
         outcome_type = ifelse(t == 1, "binomial", "survival"),
         shifted = shift_1,
-        folds = 1, 
-        control = lmtp_control(.learners_outcome_folds = 2, 
+        folds = 5, 
+        control = lmtp_control(.learners_outcome_folds = 2,
                                .learners_trt_folds = 2)
         )
       })
+    toc()
   }
   
   # observed results
   for (t in 1:tau) {
+    tic()
+    print(paste0("Processing outcome: ", Y, ", type: observed", ", t: ", t))
     results_observ[[t]] <- 
       progressr::with_progress({
         lmtp_tmle(
@@ -144,11 +156,12 @@ for (Y in c("Y1","Y2","Y3","Y4","Y5")){
           learners_outcome = libs,
           learners_trt = libs,
           outcome_type = ifelse(t == 1, "binomial", "survival"),
-          folds = 1, 
-          control = lmtp_control(.learners_outcome_folds = 2, 
+          folds = 5, 
+          control = lmtp_control(.learners_outcome_folds = 2,
                                  .learners_trt_folds = 2)
         )
       })
+    toc()
   }
   
   
@@ -157,13 +170,12 @@ for (Y in c("Y1","Y2","Y3","Y4","Y5")){
     results_contrast[[t]] <- lmtp_contrast(results_interv[[t]], ref = results_observ[[t]])
   }
   
-  toc()
 
   results <- list(results_interv,
                   results_observ,
                   results_contrast)
   names(results) <- c("intervention", "observed", "contrast")
-  saveRDS(results, file.path("/mnt/general-data/disability/post_surgery_opioid_use/analysis", 
+  saveRDS(results, file.path("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3", 
                              paste0("lmtp_result_", Y, ".rds")))
 }
 
@@ -211,3 +223,42 @@ ggplot(results_tidy, aes(x = t, y = estimate)) +
 # for (j in 6:19) {
 #   print(table(dat_lmtp[which(dat_lmtp[,j] == 1),]$Y4_1))
 # }
+
+
+Repeat using 3 additional shifts:
+
+shift_2 <- dat_lmtp |>
+mutate(mean_daily_dose_mme = 0.8*mean_daily_dose_mme,
+       days_supplied =days_supplied,
+       days_of_continuous_use = days_of_continuous_use,
+       C_1 = 1,
+       C_2 = 1,
+       C_3 = 1,
+       C_4 = 1)
+
+shift_3 <- dat_lmtp |>
+  mutate(mean_daily_dose_mme = mean_daily_dose_mme,
+         days_supplied = 0.8*days_supplied,
+         days_of_continuous_use = days_of_continuous_use,
+         C_1 = 1,
+         C_2 = 1,
+         C_3 = 1,
+         C_4 = 1)
+
+shift_4 <- dat_lmtp |>
+  mutate(mean_daily_dose_mme = mean_daily_dose_mme,
+         days_supplied = days_supplied,
+         days_of_continuous_use = 0.8*days_of_continuous_use,
+         C_1 = 1,
+         C_2 = 1,
+         C_3 = 1,
+         C_4 = 1)
+
+shift_5 <- dat_lmtp |>
+  mutate(mean_daily_dose_mme = mean_daily_dose_mme,
+         days_supplied = 0.8*days_supplied,
+         days_of_continuous_use = 0.8*days_of_continuous_use,
+         C_1 = 1,
+         C_2 = 1,
+         C_3 = 1,
+         C_4 = 1)
