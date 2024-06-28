@@ -170,4 +170,4 @@ claims <- claims |>
 
 
 claims <- claims[, c("BENE_ID", "CLM_ID", "cohort_exclusion_noncontinuous")]
-saveRDS(claims, "/mnt/general-data/disability/post_surgery_opioid_use/exclusion/cohort_exclusion_noncontinuous2.rds")
+saveRDS(claims, "/mnt/general-data/disability/post_surgery_opioid_use/exclusion/cohort_exclusion_noncontinuous.rds")

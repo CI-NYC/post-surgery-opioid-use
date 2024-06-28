@@ -23,8 +23,8 @@ Surgery:
         '52630': Transurethral resection of residual or regrowth of obstructive prostate tissue including control of postoperative bleeding, complete
         
         # From Sun paper:
-        '27447': Total Knee Arthroplasty
-        '27130': Total Hip Arthroplasty
+        '27447': Total Knee Arthroplasty # major
+        '27130': Total Hip Arthroplasty #
         '47600': Open Cholecystectomy
         '47605': Open Cholecystectomy
         '47610': Open Cholecystectomy

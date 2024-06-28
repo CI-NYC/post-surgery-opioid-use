@@ -1,6 +1,7 @@
 # -------------------------------------
 # Script: survival
-# Author:
+# Author: Anton Hung
+# Date: June 22
 # Purpose:
 # Notes:
 # -------------------------------------
@@ -14,141 +15,134 @@ library(mlr3learners)
 library(mlr3extralearners) 
 library(purrr)
 
-dat_lmtp <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/combined_df.rds") |>
-  select(-has_pain_back_neck_unspecified) |>
+dat_non_c_section <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_non_c_section.rds") |>
   as.data.frame()
-# dat_lmtp <- readRDS("/mnt/general-data/disability/create_cohort/final/dat_lmtp.rds")
 
-# for (i in 1:24){
-#   
-#   which_6mos <- ifelse(floor(i/6) == 0, 1,
-#                       ifelse(floor(i/6) == 1, 2,
-#                              ifelse(floor(i/6) == 2, 3, 4)))
-#   
-#   censor_column <- paste0("C_", which_6mos)
-#   OD_column <- paste0("Y1_", which_6mos)
-#   OUD_column <- paste0("Y2_", which_6mos)
-#   met_column <- paste0("Y3_", which_6mos)
-#   nal_column <- paste0("Y4_", which_6mos)
-#   bup_column <- paste0("Y5_", which_6mos)
-#   
-#   C <- paste0("")
-#   # columns
-#   columns <- C, Y1, Y2, Y3, Y4, Y5
-#   paste0(columns, i)
-#   
-#   
-#   dat_lmtp <- dat_lmtp |>
-#     mutate({{censor_column}} = ,
-#            {{OD_column}} = ,
-#            {{OUD_column}} = ,
-#            {{met_column}} = ,
-#            {{nal_column}} = ,
-#            {{bup_column}})
-# }
+dat_only_c_section <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_only_c_section.rds") |>
+  as.data.frame()
 
-dat_lmtp <- dat_lmtp |>
-  mutate(Y6_1 = ifelse(Y3_1 == 1 | Y4_1 == 1 | Y5_1 == 1, 1, 0),
-         Y6_2 = ifelse(Y3_2 == 1 | Y4_2 == 1 | Y5_2 == 1, 1, 0),
-         Y6_3 = ifelse(Y3_3 == 1 | Y4_3 == 1 | Y5_3 == 1, 1, 0),
-         Y6_4 = ifelse(Y3_4 == 1 | Y4_4 == 1 | Y5_4 == 1, 1, 0))
+# dat_non_c_section <- dat_non_c_section[1:10000,]
+
+# combining the three individual MOUD categories together
+# dat_lmtp <- dat_lmtp |>
+#   mutate(Y6_1 = ifelse(Y3_1 == 1 | Y4_1 == 1 | Y5_1 == 1, 1, 0),
+#          Y6_2 = ifelse(Y3_2 == 1 | Y4_2 == 1 | Y5_2 == 1, 1, 0),
+#          Y6_3 = ifelse(Y3_3 == 1 | Y4_3 == 1 | Y5_3 == 1, 1, 0),
+#          Y6_4 = ifelse(Y3_4 == 1 | Y4_4 == 1 | Y5_4 == 1, 1, 0))
+
+shift_data <- function(dat_lmtp, shift_columns){
+  shited_data <- dat_lmtp |>
+    mutate_at(shift_columns, ~ . * 0.8) |>
+    mutate(C_1 = 1,
+           C_2 = 1,
+           C_3 = 1,
+           C_4 = 1)
+}
 
 
+# # create 5 shifted data sets
+# shift_1 <- dat_non_c_section |> 
+#   mutate(mean_daily_dose_mme = 0.8*mean_daily_dose_mme,
+#          days_supplied = 0.8*days_supplied,
+#          days_of_continuous_use = 0.8*days_of_continuous_use,
+#          C_1 = 1,
+#          C_2 = 1,
+#          C_3 = 1,
+#          C_4 = 1)
+# 
+# shift_2 <- dat_lmtp |>
+#   mutate(mean_daily_dose_mme = 0.8*mean_daily_dose_mme,
+#          days_supplied =days_supplied,
+#          days_of_continuous_use = days_of_continuous_use,
+#          C_1 = 1,
+#          C_2 = 1,
+#          C_3 = 1,
+#          C_4 = 1)
+# 
+# shift_3 <- dat_lmtp |>
+#   mutate(mean_daily_dose_mme = mean_daily_dose_mme,
+#          days_supplied = 0.8*days_supplied,
+#          days_of_continuous_use = days_of_continuous_use,
+#          C_1 = 1,
+#          C_2 = 1,
+#          C_3 = 1,
+#          C_4 = 1)
+# 
+# shift_4 <- dat_lmtp |>
+#   mutate(mean_daily_dose_mme = mean_daily_dose_mme,
+#          days_supplied = days_supplied,
+#          days_of_continuous_use = 0.8*days_of_continuous_use,
+#          C_1 = 1,
+#          C_2 = 1,
+#          C_3 = 1,
+#          C_4 = 1)
+# 
+# shift_5 <- dat_lmtp |>
+#   mutate(mean_daily_dose_mme = mean_daily_dose_mme,
+#          days_supplied = 0.8*days_supplied,
+#          days_of_continuous_use = 0.8*days_of_continuous_use,
+#          C_1 = 1,
+#          C_2 = 1,
+#          C_3 = 1,
+#          C_4 = 1)
 
-# create shifted data set
-shift_1 <- dat_lmtp |> 
-  mutate(mean_daily_dose_mme = 0.8*mean_daily_dose_mme,
-         days_supplied = 0.8*days_supplied,
-         days_of_continuous_use = 0.8*days_of_continuous_use,
-         C_1 = 1,
-         C_2 = 1,
-         C_3 = 1,
-         C_4 = 1)
-
-Y <- dat_lmtp |>
-  select(starts_with("Y1")) |>
-  names()
-C <- dat_lmtp |>
+# identifying censor columns
+C <- dat_non_c_section |>
   select(starts_with("C")) |>
   names()
-A <- list(c("mean_daily_dose_mme", "days_supplied", "days_of_continuous_use"))
-# A <- "mean_daily_dose_mme"
 
-W <- dat_lmtp |> # all confounder vars are together from data cleaning
-  select(SEX_M:surgery_major) |>
-  names()
+# identifying exposure columns
+A <- list(c("mean_daily_dose_mme", "days_of_continuous_use")) # removed days_supplied
 
+# learners
 libs <- c("mean", "glm", "xgboost", "earth")
 
-# dat_lmtp <- dat_lmtp[1:10000,]
-# shift_1 <- shift_1[1:10000,]
 
-
-for (Y in c("Y6","Y1","Y2")){
-  set.seed(1)
-  # Y <- c(paste0(Y,"_1"),
-  #        paste0(Y,"_2"),
-  #        paste0(Y,"_3"),
-  #        paste0(Y,"_4"))
-  
-  # dat_lmtp <- event_locf(dat_lmtp, Y)
-  
-  # fit1 <-
-  #   progressr::with_progress({
-  #     lmtp_tmle(dat_lmtp_sample,
-  #               trt = A,
-  #               outcome = Y,
-  #               baseline = W,
-  #               cens = C,
-  #               mtp = T,
-  #               folds = 1,
-  #               learners_outcome = libs,
-  #               learners_trt = libs,
-  #               outcome_type = "survival",
-  #               shifted = shift_1_sample,
-  #               # control = lmtp_control(.learners_trt_folds = 2, .learners_outcome_folds = 2)
-  #     )
-  #   }
-  #   )
-  
-  tau <- 4
+survival_lmtp_intervention <- function(Y, W, data, shifted, shift_name){
+  tau = 4
   results_interv <- vector("list", length = tau)
-  results_observ <- vector("list", length = tau)
-  results_contrast <- vector("list", length = tau)
   
-  # intervention results
-  for (t in 1:tau) {
-    tic()
-    print(paste0("Processing outcome: ", Y, ", type: intervention", ", t: ", t))
+  for (t in 1:4) {
+    # tic()
+    print(paste0("Processing outcome: ", Y, ", version: ", shift_name, ", t: ", t))
     results_interv[[t]] <- 
       progressr::with_progress({
         lmtp_tmle(
-        dat_lmtp,
-        trt = A,
-        outcome = paste0(Y, "_", 1:t),
-        baseline = W,
-        cens = paste0("C_", 1:t),
-        mtp = T,
-        learners_outcome = libs,
-        learners_trt = libs,
-        outcome_type = ifelse(t == 1, "binomial", "survival"),
-        shifted = shift_1,
-        folds = 5, 
-        control = lmtp_control(.learners_outcome_folds = 2,
-                               .learners_trt_folds = 2)
+          data,
+          trt = A,
+          outcome = paste0(Y, "_", 1:t),
+          baseline = W,
+          cens = paste0("C_", 1:t),
+          mtp = T,
+          learners_outcome = libs,
+          learners_trt = libs,
+          outcome_type = ifelse(t == 1, "binomial", "survival"),
+          shifted = shifted,
+          folds = 5, 
+          control = lmtp_control(.learners_outcome_folds = 2,
+                                 .learners_trt_folds = 2)
         )
       })
-    toc()
+    # toc()
+    print(date())
   }
+  return(results_interv)
+}
+
+
+
+
+survival_lmtp_observed <- function(Y, W, data){
+  tau = 4
+  results_observ <- vector("list", length = tau)
   
-  # observed results
   for (t in 1:tau) {
-    tic()
-    print(paste0("Processing outcome: ", Y, ", type: observed", ", t: ", t))
+    # tic()
+    print(paste0("Processing outcome: ", Y, ", version: observed, t: ", t))
     results_observ[[t]] <- 
       progressr::with_progress({
         lmtp_tmle(
-          dat_lmtp,
+          data,
           trt = A,
           outcome = paste0(Y, "_", 1:t),
           baseline = W,
@@ -161,104 +155,74 @@ for (Y in c("Y6","Y1","Y2")){
                                  .learners_trt_folds = 2)
         )
       })
-    toc()
+    # toc()
+    print(date())
   }
+  return(results_observ)
+}
+
+
+
+
+lmtp_contrast_and_save <- function(Y, W, data, shifted, shift_name, results_observ, c_section_identifier){
+  tau = 4
+  results_contrast <- vector("list", length = tau)
   
+  results_interv <- survival_lmtp_intervention(Y, W, data, shifted, shift_name)
   
   # compare results
-  for (t in 1:tau) {
-    results_contrast[[t]] <- lmtp_contrast(results_interv[[t]], ref = results_observ[[t]])
+  for (t in 1:tau) { 
+    results_contrast[[t]] <- lmtp_contrast(results_interv[[t]], ref = results_observ[[t]]) 
   }
   
-
   results <- list(results_interv,
                   results_observ,
                   results_contrast)
   names(results) <- c("intervention", "observed", "contrast")
   saveRDS(results, file.path("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3", 
-                             paste0("lmtp_result_", Y, ".rds")))
+                             paste0("lmtp_result_", c_section_identifier, "_", shift_name, "_", Y, ".rds")))
 }
 
 
-
-### Survival curve
-results_tidy <- map_dfr(results_observ, tidy, .id = "t") |> 
-  mutate(estimate = ifelse(t == 1, 1 - estimate, estimate), 
-         t = as.numeric(t))
-
-print(results_tidy)
-
-ggplot(results_tidy, aes(x = t, y = estimate)) + 
-  geom_step() + 
-  labs(x = "6-month period", y = "Survival probability") + 
-  # scale_y_continuous(limits = c(0, 1), 
-  #                    n.breaks = 10, 
-  #                    expand = c(0, 0)) + 
-  scale_x_continuous(limits = c(0, 4), 
-                     n.breaks = 4, 
-                     expand = c(0.01, 0))
-
-
-#### Single time point check
-
-# result_1 <-
-#   progressr::with_progress({
-#     lmtp_tmle(
-#       dat_lmtp,
-#       trt = A,
-#       outcome = paste0("Y2_", 1:4),
-#       baseline = W,
-#       cens = paste0("C_", 1:4),
-#       mtp = T,
-#       learners_outcome = libs,
-#       learners_trt = libs,
-#       outcome_type = "survival",
-#       shifted = shift_1,
-#       folds = 1,
-#       control = lmtp_control(.learners_outcome_folds = 2,
-#                              .learners_trt_folds = 2)
-#     )
-#   })
-
-# for (j in 6:19) {
-#   print(table(dat_lmtp[which(dat_lmtp[,j] == 1),]$Y4_1))
+set.seed(1)
+# for (Y in c("Y1","Y2","Y6")){
+#   my_survival_lmtp(Y, dat_lmtp, shift_1, "shift_1")
+#   my_survival_lmtp(Y, dat_lmtp, shift_2, "shift_2")
+#   my_survival_lmtp(Y, dat_lmtp, shift_3, "shift_3")
+#   my_survival_lmtp(Y, dat_lmtp, shift_4, "shift_4")
+#   my_survival_lmtp(Y, dat_lmtp, shift_5, "shift_5")
+#   
 # }
 
 
-Repeat using 3 additional shifts:
+W_non_c_section <- dat_non_c_section |> # all confounder vars are together from data cleaning
+  select(age_enrollment:surgery_major) |>
+  names()
 
-shift_2 <- dat_lmtp |>
-mutate(mean_daily_dose_mme = 0.8*mean_daily_dose_mme,
-       days_supplied =days_supplied,
-       days_of_continuous_use = days_of_continuous_use,
-       C_1 = 1,
-       C_2 = 1,
-       C_3 = 1,
-       C_4 = 1)
+W_only_c_section <- dat_only_c_section |> # changing the initial df to dat_only_c_section doesn't actually matter. could have worked with dat_non_c_section as well.
+  select(age_enrollment:has_pain_back_neck_unspecified) |>
+  names()
 
-shift_3 <- dat_lmtp |>
-  mutate(mean_daily_dose_mme = mean_daily_dose_mme,
-         days_supplied = 0.8*days_supplied,
-         days_of_continuous_use = days_of_continuous_use,
-         C_1 = 1,
-         C_2 = 1,
-         C_3 = 1,
-         C_4 = 1)
+run_lmtp <- function(dat_lmtp, W, c_section_identifier) {
+  shift_1 <- shift_data(dat_lmtp, c("mean_daily_dose_mme", "days_of_continuous_use"))
+  shift_2 <- shift_data(dat_lmtp, c("mean_daily_dose_mme"))
+  # shift_3 <- shift_data(dat_lmtp, c("days_supplied"))
+  shift_3 <- shift_data(dat_lmtp, c("days_of_continuous_use"))
+  # shift_5 <- shift_data(dat_lmtp, c("days_supplied", "days_of_continuous_use"))
+  
+  for (Y in c("Y2","Y3","Y4")){
+    
+    results_observ <- survival_lmtp_observed(Y, W, dat_lmtp)
+    
+    lmtp_contrast_and_save(Y, W, dat_lmtp, shift_1, "shift_1", results_observ, c_section_identifier)
+    lmtp_contrast_and_save(Y, W, dat_lmtp, shift_2, "shift_2", results_observ, c_section_identifier)
+    lmtp_contrast_and_save(Y, W, dat_lmtp, shift_3, "shift_3", results_observ, c_section_identifier)
+    # lmtp_contrast_and_save(Y, W, dat_lmtp, shift_4, "shift_4", results_observ, c_section_identifier)
+    # lmtp_contrast_and_save(Y, W, dat_lmtp, shift_5, "shift_5", results_observ, c_section_identifier)
+  } 
+}
 
-shift_4 <- dat_lmtp |>
-  mutate(mean_daily_dose_mme = mean_daily_dose_mme,
-         days_supplied = days_supplied,
-         days_of_continuous_use = 0.8*days_of_continuous_use,
-         C_1 = 1,
-         C_2 = 1,
-         C_3 = 1,
-         C_4 = 1)
 
-shift_5 <- dat_lmtp |>
-  mutate(mean_daily_dose_mme = mean_daily_dose_mme,
-         days_supplied = 0.8*days_supplied,
-         days_of_continuous_use = 0.8*days_of_continuous_use,
-         C_1 = 1,
-         C_2 = 1,
-         C_3 = 1,
-         C_4 = 1)
+run_lmtp(dat_non_c_section, W_non_c_section, "other")
+run_lmtp(dat_only_c_section, W_only_c_section, "c-section")
+

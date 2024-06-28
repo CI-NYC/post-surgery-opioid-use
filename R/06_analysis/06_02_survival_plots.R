@@ -8,15 +8,15 @@ library(tidyverse)
 library(purrr)
 library(lmtp)
 
-load_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3/"
+load_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3"
 result_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3/plots"
 
-outcome_codes <- data.frame(Y = c("Y1", "Y2", "Y3", "Y4", "Y5", "Y6"),
-                            name = c("Overdose","OUD","MOUD_met","MOUD_nal","MOUD_bup", "MOUD"))
+outcome_codes <- data.frame(Y = c("Y1", "Y2", "Y3", "Y4"),
+                            name = c("Overdose","hillary","OUD_all_inclusive","MOUD"))
 
-combine_intervention_observed <- function(outcome) {
+combine_intervention_observed <- function(outcome, shift, c_section_identifier) {
   # load lmtp results
-  lmtp_object <- readRDS(file.path(load_dir, paste0("lmtp_result_",outcome,".rds")))
+  lmtp_object <- readRDS(file.path(load_dir, paste0("lmtp_result_", c_section_identifier, "_", shift, "_", outcome,".rds")))
   
   # prepare results for the observed data
   results_observed <- map_dfr(lmtp_object$observed, tidy, .id = "t") |> 
@@ -49,11 +49,11 @@ combine_intervention_observed <- function(outcome) {
 
 
 
-plot_surv <- function(outcome){
+plot_surv <- function(outcome, shift, c_section_identifier){
   file_name <- outcome_codes |> filter(Y == outcome) |> select(name)
-  title <- paste0("Estimated Incidence of ",file_name)
+  title <- paste0("Estimated Incidence of ",file_name, ",\n", shift, ", ", c_section_identifier)
   
-  combined_results <- combine_intervention_observed(outcome)
+  combined_results <- combine_intervention_observed(outcome, shift, c_section_identifier)
   
   # plot the survival curves for observed data and intervention
   p <- ggplot(combined_results, aes(x = t, y = estimate)) + 
@@ -67,18 +67,18 @@ plot_surv <- function(outcome){
   
   # save the plot
   print(p)
-  ggsave(file = file.path(result_dir, paste0("surv_plot_", file_name, ".pdf")), width = 5, height = 4)
+  ggsave(file = file.path(result_dir, paste0("surv_plot_", c_section_identifier, "_", shift, "_", file_name, ".pdf")), width = 5, height = 4)
   return(p)
   
 }
 
 
-plot_survdiff <- function(outcome){
+plot_survdiff <- function(outcome, shift, c_section_identifier){
   # load lmtp results
-  lmtp_object <- readRDS(file.path(load_dir, paste0("lmtp_result_",outcome,".rds")))
+  lmtp_object <- readRDS(file.path(load_dir, paste0("lmtp_result_", c_section_identifier, "_", shift, "_", outcome,".rds")))
   
   file_name <- outcome_codes |> filter(Y == outcome) |> select(name)
-  title <- paste0("Estimated contrasts for ",file_name)
+  title <- paste0("Estimated contrasts for ",file_name, ",\n", shift, ", ", c_section_identifier)
   
   # unpack the contrast results from the lmtp_contrast object
   results_contrast <- data.frame()
@@ -117,7 +117,7 @@ plot_survdiff <- function(outcome){
     
   # save plot
   print(p)
-  ggsave(file = file.path(result_dir, paste0("survdiff_plot_", file_name, ".pdf")), width = 4, height = 4)
+  ggsave(file = file.path(result_dir, paste0("survdiff_plot_", c_section_identifier, "_", shift, "_", file_name, ".pdf")), width = 4, height = 4)
   return(p)
 }
 
@@ -162,9 +162,12 @@ plot_surv("Y1")
 plot_survdiff("Y1")
 plot_stepchange("Y1")
 
-plot_surv("Y2")
-plot_survdiff("Y2")
-plot_stepchange("Y2")
+for (shift in c("shift_1", "shift_2", "shift_3", "shift_4", "shift_5")){
+  print(shift)
+  plot_surv("Y2", shift)
+  plot_survdiff("Y2", shift)
+  # plot_stepchange("Y2", shift)
+}
 
 plot_surv("Y3")
 plot_survdiff("Y3")
@@ -178,6 +181,13 @@ plot_surv("Y5")
 plot_survdiff("Y5")
 plot_stepchange("Y5")
 
-plot_surv("Y6")
-plot_survdiff("Y6")
+for (shift in c("shift_1", "shift_2", "shift_3")){
+  plot_surv("Y2", shift, "other")
+  plot_survdiff("Y2", shift, "other")
+}
+
+for (shift in c("shift_1", "shift_2", "shift_3")){
+  plot_surv("Y3", shift, "other")
+  plot_survdiff("Y3", shift, "other")
+}
 

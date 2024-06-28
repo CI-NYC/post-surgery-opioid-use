@@ -15,7 +15,7 @@ claims <- readRDS(file.path(intermediate_dir, "surgery_claims.rds"))
 
 exclusion_poison <- readRDS(file.path(exclusion_dir, "cohort_exclusion_poison.rds"))
 exclusion_oud_hillary <- readRDS(file.path(exclusion_dir, "cohort_exclusion_hillary.rds"))
-exclusion_noncontinuous <- readRDS(file.path(exclusion_dir, "cohort_exclusion_noncontinuous2.rds"))
+exclusion_noncontinuous <- readRDS(file.path(exclusion_dir, "cohort_exclusion_noncontinuous.rds"))
 exclusion_eligible_opioid <- readRDS(file.path(exclusion_dir, "cohort_exclusion_eligible_opioid.rds"))
 exclusion_ineligible_opioid <- readRDS(file.path(exclusion_dir, "cohort_exclusion_ineligible_opioid.rds"))
 exclusion_surgery_duration <- readRDS(file.path(exclusion_dir, "cohort_exclusion_surgery_duration.rds"))
@@ -64,7 +64,7 @@ cleaned_surgeries <- joined_surgeries |>
 cleaned_surgeries <- cleaned_surgeries |>
   filter(cohort_exclusion_cal == 0)
 
-saveRDS(cleaned_surgeries, file.path(intermediate_dir, "cleaned_surgeries.rds"))
+# saveRDS(cleaned_surgeries, file.path(intermediate_dir, "cleaned_surgeries.rds"))
 
 first_surgeries <- cleaned_surgeries |>
   group_by(BENE_ID) |>
