@@ -58,7 +58,7 @@ Some variables indicate what a surgery needs to have to be INCLUDED in the cohor
 |------------------------|------------|
 | Age                    | Should already have this after making the age exclusion variable. Found <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L69-L72">here</a> |
 | Sex          | Called `SEX_CD`. Can be joined from the df `joined_df.rds` located at `/mnt/general-data/disability/create_cohort/final/` |
-| Type of surgery | This is already stored as LINE_PRCDR_CD in the cohort, `first_surgeries.rds`. <p>To represent this in the analysis data frame, I will need to make a column for each type of surgery (~40 types/ICD-9 codes OR ~120 ICD-10 codes), where each column is a binary indicator of whether the beneficiary had or did not have that type of surgery. <p>Beneficiaries may have undergone multiple procedures during their surgery.|
+| Type of surgery | This is already stored as LINE_PRCDR_CD in the cohort, `first_surgeries.rds`. <p> Surgeries are defined as either a major or minor surgery as follows: surgeries with a CPT code are classified as minor surgeries, while those with an ICD-10 code are major surgeries.|
 | Anxiety | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_anxiety.R">here</a>. Need to make a binary indicator of whether or not there exists a claim for anxiety during the washout period. |
 | Depression | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_depression.R">here</a>. Need to make a binary indicator of whether or not there exists a claim for depression during the washout period. |
 | Bipolar | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_bipolar.R#L1">here</a>. Need to make a binary indicator of whether or not there exists a claim for bipolar disorder during the washout period. |
@@ -93,6 +93,24 @@ For all outcomes, I will need to record the date of the first occurrence (after 
 We estimate the effect of each of the opioid exposure variables on each of the outcome variables, adjusting for covariates, holding other opioid exposure variables at their observed levels. Using the notation given above, this effect can be written: 
 $E(Y_T^{d_n(\mathbf{A}), \Delta=1} - Y_T^{\mathbf{A}, \Delta=1}),$ where $E(Y_T^{\mathbf{A}, \Delta=1})$ denotes the expected value of the counterfactual outcome had the set of prescription opioid variables ($\mathbf{A}$) not been intervened on (i.e., remained as observed) and had no one been censored, and where $E(Y_T^{d_n(\mathbf{A}), \Delta=1})$ denotes the expected value of the counterfactual outcome had the particular opioid variable $A_n$ been intervened on as dictated by the function $d_n(\mathbf{A})$ but the remaining opioid variables stayed as observed and had no one been censored.
 
-TO DO:
-- look at the distributions of $A_1, A_2, A_3$ and decide what shift intervention makes sense.
+# Analysis
+Modified: July 1st
+
+### Stratify cohort by cesarean section
+Additional CPT surgery codes were added from the paper, <a href="https://jamanetwork.com/journals/jamainternalmedicine/fullarticle/2532789?utm_campaign=articlePDF&utm_medium=articlePDFlink&utm_source=articlePDF&utm_content=jamainternmed.2016.3298">Incidence of and Risk Factors for Chronic Opioid Use Among Opioid-Naive Patients in the Postoperative Period</a> by Sun et al. Doing so changed the cohort to be ~43% comprised of beneficiaries who underwent a c-section. Although we are already controlling for type of surgery, we are only making the distinction between major and minor. There are so many c-sections that we decided the best approach would be to run our analysis on two strata of the cohort separately: those who underwent a c-section, and those who underwent a different procedure. Among those who had a different procedure, we still include major/minor surgery as a confounder.
+
+### Exposures
+Looking at some exploratory visualizations of the two exposures, `days of continuous use` and `days supplied`, there seemed to be too much correlation between the two. In other words, days supplied does not seem to give us any additional insight into our outcomes when compared to using days of continuous use alone. We proceed with the analysis using just `MME` and `days of continuous use` as exposures.
+
+### Outcomes
+We determined that our cohort contains too few cases of overdose to make it a meaningful outcome. We also added a definition of OUD that includes all of `overdose`, `hillary OUD (ICD-10 codes)` and `MOUD` together. Thus, our outcomes were modified to include our original definition of `OUD (hillary)`, an `all-inclusive OUD`, and an all-inclusive MOUD (not separated by met, nal, bup)`.
+
+### LMTP parameters
+- Analysing outcomes at 4 timepoints. 6, 12, 18 and 24 months after the start of follow-up.
+- Targeted Maximum Likelihood Estimator
+- Estimating three interventions: 1) decreasing both MME and days-of-continuous-use by 20%. 2) decreasing MME by 20%. 3) decreasing days-of-continuous-use by 20%
+- Learners: mean, glm, xgboost, earth
+- folds: 5
+
+This makes for a total of 72 different estimates: 2 strata x 3 outcomes x 3 shifts x 4 timepoints.
 
