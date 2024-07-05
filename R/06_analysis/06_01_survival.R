@@ -95,7 +95,7 @@ C <- dat_non_c_section |>
 A <- list(c("mean_daily_dose_mme", "days_of_continuous_use")) # removed days_supplied
 
 # learners
-libs <- c("mean", "glm", "xgboost", "earth")
+libs <- c("mean", "glm", "lightgbm", "earth", "ranger")
 
 
 survival_lmtp_intervention <- function(Y, W, data, shifted, shift_name){

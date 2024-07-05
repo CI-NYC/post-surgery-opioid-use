@@ -24,6 +24,7 @@ combined_df_1 <- combined_df |>
 
 combined_df_2 <- combined_df |>
   filter(PRCDR_CD %in% c_section_codes) |>
+  filter(!SEX_M == 1) |>
   select(-PRCDR_CD)
 
 

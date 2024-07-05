@@ -10,7 +10,8 @@ library(dplyr)
 df1 <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_non_c_section.rds")
 # 5:22
 
-df2 <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_only_c_section.rds")
+df2 <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_only_c_section.rds") |>
+  filter(!SEX_M == 1)
 # 5:20
 
 df1 <- df1 |>
@@ -25,7 +26,8 @@ df1 <- df1 |>
 
 df2 <- df2 |>
   mutate(sex = NA, .before = SEX_M) |>
-  mutate(SEX_F = 1 - SEX_M, .after=SEX_M) |>
+  mutate(SEX_M = NA) |>
+  mutate(SEX_F = NA, .after=SEX_M) |>
   mutate(psychiatric_conditions = NA, .before = has_anxiety) |>
   mutate(substance_abuse = NA, .before = has_alcohol_abuse) |>
   mutate(pain = NA, .before = has_pain_back) |>
