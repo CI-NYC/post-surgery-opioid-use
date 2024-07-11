@@ -9,8 +9,8 @@ library(tidyverse)
 library(lmtp)
 library(gridExtra)
 
-load_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3"
-result_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3/plots"
+load_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4"
+result_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4/plots"
 
 
 
@@ -29,9 +29,9 @@ combine_intervention_observed <- function(outcome, shift, c_section_identifier) 
   results_observed <- map_dfr(lmtp_object$observed, tidy, .id = "t") |> 
     rename(old.conf.low = conf.low,
            old.conf.high = conf.high) |>
-    mutate(estimate = ifelse(t == 1, estimate, 1 - estimate),
-           conf.low = ifelse(t == 1, old.conf.low, 1 - old.conf.high),
-           conf.high = ifelse(t == 1, old.conf.high, 1 - old.conf.low),
+    mutate(estimate = 1-estimate,
+           conf.low = 1-old.conf.high,
+           conf.high = 1-old.conf.low,
            t = as.numeric(t),
            type = "observed") |>
     select(-c(old.conf.low, old.conf.high)) |>
@@ -41,9 +41,9 @@ combine_intervention_observed <- function(outcome, shift, c_section_identifier) 
   results_intervention <- map_dfr(lmtp_object$intervention, tidy, .id = "t") |> 
     rename(old.conf.low = conf.low,
            old.conf.high = conf.high) |>
-    mutate(estimate = ifelse(t == 1, estimate, 1 - estimate),
-           conf.low = ifelse(t == 1, old.conf.low, 1 - old.conf.high),
-           conf.high = ifelse(t == 1, old.conf.high, 1 - old.conf.low),
+    mutate(estimate = 1-estimate,
+           conf.low = 1-old.conf.high,
+           conf.high = 1-old.conf.low,
            t = as.numeric(t),
            type = "intervention") |>
     select(-c(old.conf.low, old.conf.high)) |>
@@ -55,7 +55,7 @@ combine_intervention_observed <- function(outcome, shift, c_section_identifier) 
 }
 
 
-plot_surv <- function(outcome, c_section_identifier, title){
+plot_surv <- function(outcome, c_section_identifier){
   '
   This function plots survival plots of our three interventions side-by-side
   '
@@ -67,21 +67,21 @@ plot_surv <- function(outcome, c_section_identifier, title){
                             combine_intervention_observed(outcome, "shift_3", c_section_identifier) |>
                               mutate(shift = "Decrease in days"))
   
-  write.csv(combined_results, paste0("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3/plots/lmtp_results_", c_section_identifier, "_", outcome, ".csv"))
+  write.csv(combined_results, paste0(result_dir, "/lmtp_results_", c_section_identifier, "_", outcome, ".csv"))
   
   # plot the survival curves for observed data and intervention
   p <- ggplot(combined_results, aes(x = t, y = estimate)) + 
     geom_point(aes(colour = type), size = 3) +
     geom_line(aes(colour = type)) +
     geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = type), alpha = 0.3, show.legend = F) +
-    labs(x = "", y = "estimated incidence", title = title) + 
+    labs(x = "", y = "estimated incidence") + 
     scale_x_continuous(labels = c("0","6","12","18","24")) +
     scale_y_continuous(labels = scales::label_comma()) +
     facet_grid(cols = vars(shift)) +
     theme_light() +
     theme(plot.title = element_text(hjust = 0.5),
           strip.text = element_text(color = "black"),
-          )
+          plot.margin = unit(c(5.5, 5.5, 5.5, 20), "pt"))
   
   # save the plot
   print(p)
@@ -106,9 +106,9 @@ combine_contrasts <- function(outcome, shift, c_section_identifier){
     rename(old.conf.low = conf.low,
            old.conf.high = conf.high) |>
     mutate(t = row_number(),
-           theta = ifelse(t==1,theta,-theta),
-           conf.low = ifelse(t==1,old.conf.low,-old.conf.high),
-           conf.high = ifelse(t==1,old.conf.high,-old.conf.low)) |>
+           theta = -theta,
+           conf.low = -old.conf.high,
+           conf.high = -old.conf.low) |>
     select(-c(old.conf.low, old.conf.high)) |>
     add_row(theta = 0, shift = 0, ref = 0, std.error = 0, conf.low = 0, conf.high = 0, p.value = 0, t = 0)
   
@@ -145,7 +145,7 @@ plot_survdiff <- function(outcome, c_section_identifier){
                             ) |>
     mutate(type="intervention") # This column has no useful meaning whatsoever. It is used in the fake legend because the longest word in the survival plot legend is "intervention". Therefore, this will make sure that both legends are the same width.
 
-  write.csv(results_contrast, paste0("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3/plots/lmtp_contrasts_", c_section_identifier, "_", outcome, ".csv"))
+  write.csv(results_contrast, paste0(result_dir, "/lmtp_contrasts_", c_section_identifier, "_", outcome, ".csv"))
   
   # make the plot
   p <- ggplot(results_contrast, aes(x = t, y = theta)) +
@@ -155,7 +155,6 @@ plot_survdiff <- function(outcome, c_section_identifier){
     geom_hline(yintercept = 0, linetype = "dotted") +
     geom_ribbon(aes(ymin = conf.low, ymax = conf.high),fill = "grey",alpha = 0.3, show.legend = F) +
     labs(
-      title = "", # empty title just creates a margin at the top of the plot to keep its aspect ratio consistent with the survival plots
       x = "month",
       y = expression(paste("difference ", (Y[intervention] - Y[observed])))
     ) +
@@ -176,39 +175,39 @@ plot_survdiff <- function(outcome, c_section_identifier){
 
 p1 <- plot_surv("Y2", "other", "Non-C-sections, OUD estimates (ICD only)")
 p2 <- plot_survdiff("Y2", "other")
-pdf(file.path(result_dir, "plots_other_hillary.pdf"), width = 9, height = 6.3)
+pdf(file.path(result_dir, "plots_other_hillary.pdf"), width = 9, height = 6)
 grid.arrange(p1, p2, ncol= 1)
 dev.off()
 
 p1 <- plot_surv("Y3", "other", "Non-C-sections, Comprehensive OUD estimates")
 p2 <- plot_survdiff("Y3", "other")
-pdf(file.path(result_dir, "plots_other_OUD.pdf"), width = 9, height = 6.3)
+pdf(file.path(result_dir, "plots_other_OUD.pdf"), width = 9, height = 6)
 grid.arrange(p1, p2, ncol= 1)
 dev.off()
 
 p1 <- plot_surv("Y4", "other", "Non-C-sections, MOUD estimates")
 p2 <- plot_survdiff("Y4", "other")
-pdf(file.path(result_dir, "plots_other_MOUD.pdf"), width = 9, height = 6.3)
+pdf(file.path(result_dir, "plots_other_MOUD.pdf"), width = 9, height = 6)
 grid.arrange(p1, p2, ncol= 1)
 dev.off()
 
 
 
 
-p1 <- plot_surv("Y2", "c-section", "Cesarian sections, OUD estimates (ICD only)")
+p1 <- plot_surv("Y2", "c-section")
 p2 <- plot_survdiff("Y2", "c-section")
-pdf(file.path(result_dir, "plots_c-section_hillary.pdf"), width = 9, height = 6.3)
-grid.arrange(p1, p2, ncol= 1)
+pdf(file.path(result_dir, "plots_c-section_hillary.pdf"), width = 9, height = 6)
+grid.arrange(p1, p2, ncol= 1, top = "Cesarian sections, OUD estimates (ICD only)")
 dev.off()
 
-p1 <- plot_surv("Y3", "c-section", "Cesarian sections, Comprehensive OUD estimates")
+p1 <- plot_surv("Y3", "c-section")
 p2 <- plot_survdiff("Y3", "c-section")
-pdf(file.path(result_dir, "plots_c-section_OUD.pdf"), width = 9, height = 6.3)
-grid.arrange(p1, p2, ncol= 1)
+pdf(file.path(result_dir, "plots_c-section_OUD.pdf"), width = 9, height = 6)
+grid.arrange(p1, p2, ncol= 1, top = "Cesarian sections, Comprehensive OUD estimates")
 dev.off()
 
-p1 <- plot_surv("Y4", "c-section", "Cesarian sections, MOUD estimates")
+p1 <- plot_surv("Y4", "c-section")
 p2 <- plot_survdiff("Y4", "c-section")
-pdf(file.path(result_dir, "plots_c-section_MOUD.pdf"), width = 9, height = 6.3)
-grid.arrange(p1, p2, ncol= 1)
+pdf(file.path(result_dir, "plots_c-section_MOUD.pdf"), width = 9, height = 6)
+grid.arrange(p1, p2, ncol= 1, top = "Cesarian sections, MOUD estimates")
 dev.off()

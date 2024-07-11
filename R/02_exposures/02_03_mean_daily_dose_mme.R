@@ -85,3 +85,19 @@ plan(sequential)
 # Save final dataset -----------------------------------------------------------
 
 saveRDS(out, file.path(save_dir, "opioid_data/surgery_mean_daily_dose_mme.rds"))
+
+
+# Additional capping based on eyeballing the histogram
+out <- readRDS(file.path(save_dir, "opioid_data/surgery_mean_daily_dose_mme.rds"))
+
+# hist(out$mean_daily_dose_mme,xlim=c(100,200), ylim=c(0,5000), breaks = 100)
+# hist(out$mean_daily_dose_mme,xlim=c(110,125), ylim=c(0,5000), breaks = 100)
+# 
+# table(out$mean_daily_dose_mme >113) # huge drop off at 113. So we decided a safe cap would be 115
+
+out <- out |>
+  mutate(mean_daily_dose_mme = ifelse(mean_daily_dose_mme > 115, 115, mean_daily_dose_mme))
+
+# hist(out$mean_daily_dose_mme)
+
+saveRDS(out, file.path(save_dir, "opioid_data/surgery_mean_daily_dose_mme_truncated.rds"))

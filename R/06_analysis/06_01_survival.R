@@ -95,37 +95,58 @@ C <- dat_non_c_section |>
 A <- list(c("mean_daily_dose_mme", "days_of_continuous_use")) # removed days_supplied
 
 # learners
-libs <- c("mean", "glm", "lightgbm", "earth", "ranger")
-
+libs <- c("mean", "glm", "xgboost", "earth", "ranger")
 
 survival_lmtp_intervention <- function(Y, W, data, shifted, shift_name){
   tau = 4
-  results_interv <- vector("list", length = tau)
+  # results_interv <- vector("list", length = tau)
   
-  for (t in 1:4) {
-    # tic()
-    print(paste0("Processing outcome: ", Y, ", version: ", shift_name, ", t: ", t))
-    results_interv[[t]] <- 
-      progressr::with_progress({
-        lmtp_tmle(
-          data,
-          trt = A,
-          outcome = paste0(Y, "_", 1:t),
-          baseline = W,
-          cens = paste0("C_", 1:t),
-          mtp = T,
-          learners_outcome = libs,
-          learners_trt = libs,
-          outcome_type = ifelse(t == 1, "binomial", "survival"),
-          shifted = shifted,
-          folds = 5, 
-          control = lmtp_control(.learners_outcome_folds = 2,
-                                 .learners_trt_folds = 2)
-        )
-      })
-    # toc()
-    print(date())
-  }
+  print(paste0("Processing outcome: ", Y, ", version: ", shift_name))
+  results_interv <- 
+    progressr::with_progress({
+      lmtp_survival(
+        data,
+        trt = A,
+        outcome = paste0(Y, "_", 1:tau),
+        baseline = W,
+        cens = paste0("C_", 1:tau),
+        mtp = T,
+        learners_outcome = libs,
+        learners_trt = libs,
+        shifted = shifted,
+        estimator = "lmtp_tmle",
+        folds = 5, 
+        control = lmtp_control(.learners_outcome_folds = 2,
+                               .learners_trt_folds = 2)
+      )
+    })
+  # toc()
+  print(date())
+  
+  # for (t in 1:4) {
+  #   # tic()
+  #   print(paste0("Processing outcome: ", Y, ", version: ", shift_name, ", t: ", t))
+  #   results_interv[[t]] <- 
+  #     progressr::with_progress({
+  #       lmtp_tmle(
+  #         data,
+  #         trt = A,
+  #         outcome = paste0(Y, "_", 1:t),
+  #         baseline = W,
+  #         cens = paste0("C_", 1:t),
+  #         mtp = T,
+  #         learners_outcome = libs,
+  #         learners_trt = libs,
+  #         outcome_type = ifelse(t == 1, "binomial", "survival"),
+  #         shifted = shifted,
+  #         folds = 5, 
+  #         control = lmtp_control(.learners_outcome_folds = 2,
+  #                                .learners_trt_folds = 2)
+  #       )
+  #     })
+  #   # toc()
+  #   print(date())
+  # }
   return(results_interv)
 }
 
@@ -134,30 +155,53 @@ survival_lmtp_intervention <- function(Y, W, data, shifted, shift_name){
 
 survival_lmtp_observed <- function(Y, W, data){
   tau = 4
-  results_observ <- vector("list", length = tau)
+  # results_observ <- vector("list", length = tau)
   
-  for (t in 1:tau) {
-    # tic()
-    print(paste0("Processing outcome: ", Y, ", version: observed, t: ", t))
-    results_observ[[t]] <- 
-      progressr::with_progress({
-        lmtp_tmle(
-          data,
-          trt = A,
-          outcome = paste0(Y, "_", 1:t),
-          baseline = W,
-          cens = paste0("C_", 1:t),
-          learners_outcome = libs,
-          learners_trt = libs,
-          outcome_type = ifelse(t == 1, "binomial", "survival"),
-          folds = 5, 
-          control = lmtp_control(.learners_outcome_folds = 2,
-                                 .learners_trt_folds = 2)
-        )
-      })
-    # toc()
-    print(date())
-  }
+  print(paste0("Processing outcome: ", Y, ", version: observed"))
+  results_observ <- 
+    progressr::with_progress({
+      lmtp_survival(
+        data,
+        trt = A,
+        outcome = paste0(Y, "_", 1:tau),
+        baseline = W,
+        cens = paste0("C_", 1:tau),
+        mtp = T,
+        learners_outcome = libs,
+        learners_trt = libs,
+        # shifted = shifted,
+        estimator = "lmtp_tmle",
+        folds = 5, 
+        control = lmtp_control(.learners_outcome_folds = 2,
+                               .learners_trt_folds = 2)
+      )
+    })
+  
+  # toc()
+  print(date())
+  
+  # for (t in 1:tau) {
+  #   # tic()
+  #   print(paste0("Processing outcome: ", Y, ", version: observed, t: ", t))
+  #   results_observ[[t]] <- 
+  #     progressr::with_progress({
+  #       lmtp_tmle(
+  #         data,
+  #         trt = A,
+  #         outcome = paste0(Y, "_", 1:t),
+  #         baseline = W,
+  #         cens = paste0("C_", 1:t),
+  #         learners_outcome = libs,
+  #         learners_trt = libs,
+  #         outcome_type = ifelse(t == 1, "binomial", "survival"),
+  #         folds = 5, 
+  #         control = lmtp_control(.learners_outcome_folds = 2,
+  #                                .learners_trt_folds = 2)
+  #       )
+  #     })
+  #   # toc()
+  #   print(date())
+  # }
   return(results_observ)
 }
 
@@ -179,7 +223,7 @@ lmtp_contrast_and_save <- function(Y, W, data, shifted, shift_name, results_obse
                   results_observ,
                   results_contrast)
   names(results) <- c("intervention", "observed", "contrast")
-  saveRDS(results, file.path("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver3", 
+  saveRDS(results, file.path("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4",
                              paste0("lmtp_result_", c_section_identifier, "_", shift_name, "_", Y, ".rds")))
 }
 
@@ -224,5 +268,5 @@ run_lmtp <- function(dat_lmtp, W, c_section_identifier) {
 
 
 run_lmtp(dat_non_c_section, W_non_c_section, "other")
-run_lmtp(dat_only_c_section, W_only_c_section, "c-section")
+# run_lmtp(dat_only_c_section, W_only_c_section, "c-section")
 
