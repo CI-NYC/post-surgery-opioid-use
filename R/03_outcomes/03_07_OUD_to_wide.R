@@ -127,7 +127,7 @@ saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/o
 
 
 ####### UNCOMMENT BOTTOM PORTION OF NEEDED
-# cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos.rds")
+cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos.rds")
 
 
 # Carrying forward last value if someone has been censored.
@@ -135,28 +135,28 @@ saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/o
 # This should not be allowed, so I changed it, for those who were censored, to overwrite all later values with their last uncensored value.
 
 
-# for (i in 1:4){
-#   print(paste("Processing month:", month))
-# 
-#   tic()
-#   censor_column <- paste0("C_", i)
-#   last_uncensored <- c(paste0("Y1_", i),
-#                     paste0("Y2_", i),
-#                     paste0("Y3_", i),
-#                     paste0("Y4_", i))
-# 
-#   censored <- which(cohort[,censor_column] == 0)
-# 
-#   for (j in i:4){
-#     carry_forward_columns <- c(paste0("Y1_", j),
-#                                paste0("Y2_", j),
-#                                paste0("Y3_", j),
-#                                paste0("Y4_", j))
-#     cohort[censored, carry_forward_columns] <- cohort[censored, last_uncensored]
-# 
-#   }
-# 
-#   toc()
-# }
-# 
-# saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos.rds")
+for (i in 1:4){
+  print(paste("Processing month:", i))
+
+  tic()
+  censor_column <- paste0("C_", i)
+  last_uncensored <- c(paste0("Y1_", i),
+                    paste0("Y2_", i),
+                    paste0("Y3_", i),
+                    paste0("Y4_", i))
+
+  censored <- which(cohort[,censor_column] == 0)
+
+  for (j in i:4){
+    carry_forward_columns <- c(paste0("Y1_", j),
+                               paste0("Y2_", j),
+                               paste0("Y3_", j),
+                               paste0("Y4_", j))
+    cohort[censored, carry_forward_columns] <- cohort[censored, last_uncensored]
+
+  }
+
+  toc()
+}
+
+saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos.rds")

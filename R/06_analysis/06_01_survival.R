@@ -16,9 +16,11 @@ library(mlr3extralearners)
 library(purrr)
 
 dat_non_c_section <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_non_c_section.rds") |>
+  select(-days_supplied) |>
   as.data.frame()
 
 dat_only_c_section <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_only_c_section.rds") |>
+  select(-days_supplied) |>
   as.data.frame()
 
 # dat_non_c_section <- dat_non_c_section[1:10000,]
@@ -95,7 +97,7 @@ C <- dat_non_c_section |>
 A <- list(c("mean_daily_dose_mme", "days_of_continuous_use")) # removed days_supplied
 
 # learners
-libs <- c("mean", "glm", "xgboost", "earth", "ranger")
+libs <- c("mean", "glm", "xgboost", "earth")
 
 survival_lmtp_intervention <- function(Y, W, data, shifted, shift_name){
   tau = 4
@@ -268,5 +270,5 @@ run_lmtp <- function(dat_lmtp, W, c_section_identifier) {
 
 
 run_lmtp(dat_non_c_section, W_non_c_section, "other")
-# run_lmtp(dat_only_c_section, W_only_c_section, "c-section")
+run_lmtp(dat_only_c_section, W_only_c_section, "c-section")
 

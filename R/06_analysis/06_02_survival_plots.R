@@ -176,19 +176,19 @@ plot_survdiff <- function(outcome, c_section_identifier){
 p1 <- plot_surv("Y2", "other", "Non-C-sections, OUD estimates (ICD only)")
 p2 <- plot_survdiff("Y2", "other")
 pdf(file.path(result_dir, "plots_other_hillary.pdf"), width = 9, height = 6)
-grid.arrange(p1, p2, ncol= 1)
+grid.arrange(p1, p2, ncol= 1, top = "Non-C-sections, OUD estimates (ICD only)")
 dev.off()
 
 p1 <- plot_surv("Y3", "other", "Non-C-sections, Comprehensive OUD estimates")
 p2 <- plot_survdiff("Y3", "other")
 pdf(file.path(result_dir, "plots_other_OUD.pdf"), width = 9, height = 6)
-grid.arrange(p1, p2, ncol= 1)
+grid.arrange(p1, p2, ncol= 1, top = "Non-C-sections, Comprehensive OUD estimates")
 dev.off()
 
-p1 <- plot_surv("Y4", "other", "Non-C-sections, MOUD estimates")
+p1 <- plot_surv("Y4", "other")
 p2 <- plot_survdiff("Y4", "other")
 pdf(file.path(result_dir, "plots_other_MOUD.pdf"), width = 9, height = 6)
-grid.arrange(p1, p2, ncol= 1)
+grid.arrange(p1, p2, ncol = 1, top = "Non-C-sections, MOUD estimates")
 dev.off()
 
 
