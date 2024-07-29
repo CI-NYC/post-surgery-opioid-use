@@ -4,7 +4,9 @@
 # Purpose:
 # Notes:
 # -------------------------------------
-
+library(dplyr)
+library(data.table)
+library(lubridate)
 
 all_poison <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/all_poison_dts.rds") |>
   rename(oud_dt = oud_poison_dt)

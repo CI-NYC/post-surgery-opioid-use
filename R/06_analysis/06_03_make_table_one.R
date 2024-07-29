@@ -23,6 +23,9 @@ df1 <- df1 |>
   mutate(pain = NA, .before = has_pain_back) |>
   mutate(surgery_type = NA, .before = surgery_major) |>
   mutate(surgery_minor = 1 - surgery_major, .after=surgery_major) |>
+  relocate(multiple_opioids, .before = length_of_stay) |>
+  mutate(single_opioid = 1- multiple_opioids, .before = multiple_opioids) |>
+  mutate(num_opioids = NA, .before = single_opioid) |>
   as.data.table()
 
 df2 <- df2 |>
@@ -35,36 +38,16 @@ df2 <- df2 |>
   mutate(surgery_type = NA, .before = surgery_major) |>
   mutate(surgery_major = NA) |>
   mutate(surgery_minor = NA, .after=surgery_major) |>
+  relocate(multiple_opioids, .before = length_of_stay) |>
+  mutate(single_opioid = 1- multiple_opioids, .before = multiple_opioids) |>
+  mutate(num_opioids = NA, .before = single_opioid) |>
   as.data.table()
   
 calc_numremaining <- function(outcome, uncensored){
   outcome <- outcome[which(uncensored == 1 | outcome == 1)]
-  n <- length(outcome)
-  
-  # return(n)
-  return(n)
+  return(paste0("(n=",length(outcome),")"))
 }
 
-c(NA,
-  calc_numremaining(df1$Y2_1, df1$C_1),
-  calc_numremaining(df1$Y2_2, df1$C_2),
-  calc_numremaining(df1$Y2_3, df1$C_3),
-  calc_numremaining(df1$Y2_4, df1$C_4),
-  NA,
-  calc_numremaining(df1$Y4_1, df1$C_1),
-  calc_numremaining(df1$Y4_2, df1$C_2),
-  calc_numremaining(df1$Y4_3, df1$C_3),
-  calc_numremaining(df1$Y4_4, df1$C_4),
-  NA,
-  calc_numremaining(df1$Y3_1, df1$C_1),
-  calc_numremaining(df1$Y3_2, df1$C_2),
-  calc_numremaining(df1$Y3_3, df1$C_3),
-  calc_numremaining(df1$Y3_4, df1$C_4),
-  NA,
-  calc_numremaining(df1$C_1, df1$C_1),
-  calc_numremaining(df1$C_2, df1$C_2),
-  calc_numremaining(df1$C_3, df1$C_3),
-  calc_numremaining(df1$C_4, df1$C_4))
 
 demographics <- c("Age",
                   "Sex:",
@@ -89,38 +72,47 @@ demographics <- c("Age",
                   "Surgery Type:",
                   "Major",
                   "Minor",
+                  "Number of prescriptions:",
+                  "One",
+                  "Many",
+                  "Length of hospital stay (days):",
+                  "1 day",
+                  "2 days",
+                  "3 days",
+                  "4 days",
+                  "5 days",
+                  "6 days",
+                  "7 days",
                   "Dose (MME)",
                   "Days of continous use",
                   "OUD (ICD only):",
-                  "at 6 months (n=162 985)",
-                  "at 12 months (n=126 857)",
-                  "at 18 months (n=94 705)",
-                  "at 24 months (n=66 255)",
-                  "MOUD:",
-                  "at 6 months (n=162 907)",
-                  "at 12 months (n=126 597)",
-                  "at 18 months (n=94 155)",
-                  "at 24 months (n=65 342)",
-                  "OUD (comprehensive):",
-                  "at 6 months (n=162 998)",
-                  "at 12 months (n=126 903)",
-                  "at 18 months (n=94 793",
-                  "at 24 months (n=66 388)",
-                  "Remained enrolled:",
                   "at 6 months",
                   "at 12 months",
                   "at 18 months",
-                  "at 24 months"
-)
+                  "at 24 months",
+                  "MOUD:",
+                  "at 6 months",
+                  "at 12 months",
+                  "at 18 months",
+                  "at 24 months",
+                  "OUD (comprehensive):",
+                  "at 6 months",
+                  "at 12 months",
+                  "at 18 months",
+                  "at 24 months")
 
 age <- paste0(median(df1$age_enrollment)," (",
               quantile(df1$age_enrollment, 0.25),", ",
               quantile(df1$age_enrollment, 0.75),")")
 
-number <- sapply(df1[,6:27], function(x) sum(x))
-proportion <- sapply(df1[,6:27], function(x) prop.table(table(x))[2])
+number <- sapply(df1[,6:31], function(x) sum(x))
+proportion <- sapply(df1[,6:31], function(x) prop.table(table(x))[2])
 
 number_proportion <- paste0(number, " (", round(proportion*100,2), "%)")
+
+length_of_stay_num <- table(df1$length_of_stay)
+length_of_stay_prop <- round(prop.table(length_of_stay_num)*100,2)
+length_of_stay <- paste0(length_of_stay_num, " (", length_of_stay_prop, "%)")
 
 # exposures
 mme <- paste0(round(median(df1$mean_daily_dose_mme),1)," (",
@@ -129,6 +121,7 @@ mme <- paste0(round(median(df1$mean_daily_dose_mme),1)," (",
 days <- paste0(median(df1$days_of_continuous_use)," (",
               quantile(df1$days_of_continuous_use, 0.25),", ",
               quantile(df1$days_of_continuous_use, 0.75),")")
+
 
 calc_cumincidence <- function(outcome, uncensored){
   outcome <- outcome[which(uncensored == 1 | outcome == 1)]
@@ -154,17 +147,26 @@ outcomes <- c(NA,
   calc_cumincidence(df1$Y3_1, df1$C_1),
   calc_cumincidence(df1$Y3_2, df1$C_2),
   calc_cumincidence(df1$Y3_3, df1$C_3),
-  calc_cumincidence(df1$Y3_4, df1$C_4),
-  NA,
-  calc_cumincidence(df1$C_1, df1$C_1),
-  calc_cumincidence(df1$C_2, df1$C_2),
-  calc_cumincidence(df1$C_3, df1$C_3),
-  calc_cumincidence(df1$C_4, df1$C_4))
+  calc_cumincidence(df1$Y3_4, df1$C_4))
 
 
-other <- c(age, number_proportion, mme, days, outcomes)
+other <- c(age, number_proportion, length_of_stay, mme, days, outcomes)
 
-
+num_remaining_other <- c(rep(NA, 37),
+                         calc_numremaining(df1$Y2_1, df1$C_1),
+                         calc_numremaining(df1$Y2_2, df1$C_2),
+                         calc_numremaining(df1$Y2_3, df1$C_3),
+                         calc_numremaining(df1$Y2_4, df1$C_4),
+                         NA,
+                         calc_numremaining(df1$Y4_1, df1$C_1),
+                         calc_numremaining(df1$Y4_2, df1$C_2),
+                         calc_numremaining(df1$Y4_3, df1$C_3),
+                         calc_numremaining(df1$Y4_4, df1$C_4),
+                         NA,
+                         calc_numremaining(df1$Y3_1, df1$C_1),
+                         calc_numremaining(df1$Y3_2, df1$C_2),
+                         calc_numremaining(df1$Y3_3, df1$C_3),
+                         calc_numremaining(df1$Y3_4, df1$C_4))
 
 # table_one <- data.frame(
 #   demographics = demographics,
@@ -181,8 +183,8 @@ age <- paste0(median(df2$age_enrollment)," (",
               quantile(df2$age_enrollment, 0.25),", ",
               quantile(df2$age_enrollment, 0.75),")")
 
-number <- sapply(df2[,6:27], function(x) sum(x))
-proportion <- sapply(df2[,6:27], function(x) prop.table(table(x))[2])
+number <- sapply(df2[,6:31], function(x) sum(x))
+proportion <- sapply(df2[,6:31], function(x) prop.table(table(x))[2])
 
 number_proportion <- paste0(number, " (", round(proportion*100,2), "%)")
 
@@ -209,37 +211,31 @@ outcomes <- c(NA,
               calc_cumincidence(df2$Y3_1, df2$C_1),
               calc_cumincidence(df2$Y3_2, df2$C_2),
               calc_cumincidence(df2$Y3_3, df2$C_3),
-              calc_cumincidence(df2$Y3_4, df2$C_4),
-              NA,
-              calc_cumincidence(df2$C_1, df2$C_1),
-              calc_cumincidence(df2$C_2, df2$C_2),
-              calc_cumincidence(df2$C_3, df2$C_3),
-              calc_cumincidence(df2$C_4, df2$C_4))
+              calc_cumincidence(df2$Y3_4, df2$C_4))
 
-c_section <- c(age, number_proportion, mme, days, outcomes)
+c_section <- c(age, number_proportion, rep(NA,7), mme, days, outcomes)
 
-placeholder <- c(rep(NA, 25),
-                 NA,
-                 calc_numremaining(df2$Y2_1, df2$C_1),
-                 calc_numremaining(df2$Y2_2, df2$C_2),
-                 calc_numremaining(df2$Y2_3, df2$C_3),
-                 calc_numremaining(df2$Y2_4, df2$C_4),
-                 NA,
-                 calc_numremaining(df2$Y4_1, df2$C_1),
-                 calc_numremaining(df2$Y4_2, df2$C_2),
-                 calc_numremaining(df2$Y4_3, df2$C_3),
-                 calc_numremaining(df2$Y4_4, df2$C_4),
-                 NA,
-                 calc_numremaining(df2$Y3_1, df2$C_1),
-                 calc_numremaining(df2$Y3_2, df2$C_2),
-                 calc_numremaining(df2$Y3_3, df2$C_3),
-                 calc_numremaining(df2$Y3_4, df2$C_4),
-                 rep(NA, 5))
+num_remaining_cs <- c(rep(NA, 37),
+                      calc_numremaining(df2$Y2_1, df2$C_1),
+                      calc_numremaining(df2$Y2_2, df2$C_2),
+                      calc_numremaining(df2$Y2_3, df2$C_3),
+                      calc_numremaining(df2$Y2_4, df2$C_4),
+                      NA,
+                      calc_numremaining(df2$Y4_1, df2$C_1),
+                      calc_numremaining(df2$Y4_2, df2$C_2),
+                      calc_numremaining(df2$Y4_3, df2$C_3),
+                      calc_numremaining(df2$Y4_4, df2$C_4),
+                      NA,
+                      calc_numremaining(df2$Y3_1, df2$C_1),
+                      calc_numremaining(df2$Y3_2, df2$C_2),
+                      calc_numremaining(df2$Y3_3, df2$C_3),
+                      calc_numremaining(df2$Y3_4, df2$C_4))
 
 table_one <- data.frame(
   demographics = demographics,
+  num_remaining_other = num_remaining_other,
   other = other,
-  placeholder = placeholder,
+  num_remaining_cs = num_remaining_cs,
   c_section = c_section
 )
 

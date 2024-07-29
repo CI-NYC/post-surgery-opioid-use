@@ -76,12 +76,12 @@ plot_surv <- function(outcome, c_section_identifier){
     geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = type), alpha = 0.3, show.legend = F) +
     labs(x = "", y = "estimated incidence") + 
     scale_x_continuous(labels = c("0","6","12","18","24")) +
-    scale_y_continuous(labels = scales::label_comma()) +
+    scale_y_continuous(labels = scales::label_number(accuracy = 0.0001)) +
     facet_grid(cols = vars(shift)) +
     theme_light() +
     theme(plot.title = element_text(hjust = 0.5),
           strip.text = element_text(color = "black"),
-          plot.margin = unit(c(5.5, 5.5, 5.5, 20), "pt"))
+          plot.margin = unit(c(5.5, 5.5, 5.5, 13.5), "pt"))
   
   # save the plot
   print(p)
@@ -165,7 +165,7 @@ plot_survdiff <- function(outcome, c_section_identifier){
           strip.text = element_text(color = "black")) +
     scale_color_manual(values = c("white")) + # making the line defined in the first line of this plot white and hidden. 
     scale_x_continuous(labels = c("0","6","12","18","24")) +
-    scale_y_continuous(labels = scales::label_comma())
+    scale_y_continuous(labels = scales::label_number(accuracy = 0.0001))
   
   # save plot
   print(p)
@@ -173,13 +173,13 @@ plot_survdiff <- function(outcome, c_section_identifier){
   return(p)
 }
 
-p1 <- plot_surv("Y2", "other", "Non-C-sections, OUD estimates (ICD only)")
+p1 <- plot_surv("Y2", "other")
 p2 <- plot_survdiff("Y2", "other")
 pdf(file.path(result_dir, "plots_other_hillary.pdf"), width = 9, height = 6)
 grid.arrange(p1, p2, ncol= 1, top = "Non-C-sections, OUD estimates (ICD only)")
 dev.off()
 
-p1 <- plot_surv("Y3", "other", "Non-C-sections, Comprehensive OUD estimates")
+p1 <- plot_surv("Y3", "other")
 p2 <- plot_survdiff("Y3", "other")
 pdf(file.path(result_dir, "plots_other_OUD.pdf"), width = 9, height = 6)
 grid.arrange(p1, p2, ncol= 1, top = "Non-C-sections, Comprehensive OUD estimates")

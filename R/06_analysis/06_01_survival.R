@@ -242,10 +242,10 @@ set.seed(1)
 
 
 W_non_c_section <- dat_non_c_section |> # all confounder vars are together from data cleaning
-  select(age_enrollment:surgery_major) |>
+  select(age_enrollment:length_of_stay) |>
   names()
 
-W_only_c_section <- dat_only_c_section |> # changing the initial df to dat_only_c_section doesn't actually matter. could have worked with dat_non_c_section as well.
+W_only_c_section <- dat_only_c_section |>
   select(age_enrollment:has_pain_back_neck_unspecified) |>
   names()
 
@@ -269,6 +269,6 @@ run_lmtp <- function(dat_lmtp, W, c_section_identifier) {
 }
 
 
-run_lmtp(dat_non_c_section, W_non_c_section, "other")
+# run_lmtp(dat_non_c_section, W_non_c_section, "other")
 run_lmtp(dat_only_c_section, W_only_c_section, "c-section")
 

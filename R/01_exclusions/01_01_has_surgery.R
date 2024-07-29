@@ -69,13 +69,20 @@ otl <- otl |>
 
 ##### Searching IPH file for surgeries
 
-iph_vars <- c("BENE_ID", "CLM_ID", "SRVC_BGN_DT", "SRVC_END_DT", "PRCDR_CD_1","PRCDR_CD_2", "PRCDR_CD_3", "PRCDR_CD_4", "PRCDR_CD_5", "PRCDR_CD_6")
+iph_vars <- c("BENE_ID", "CLM_ID", "SRVC_BGN_DT", "SRVC_END_DT", "ADMSN_DT", "DSCHRG_DT", "PRCDR_CD_1","PRCDR_CD_2", "PRCDR_CD_3", "PRCDR_CD_4", "PRCDR_CD_5", "PRCDR_CD_6")
+              # "PRCDR_CD_DT_1", "PRCDR_CD_DT_2", "PRCDR_CD_DT_3", "PRCDR_CD_DT_4", "PRCDR_CD_DT_5", "PRCDR_CD_DT_6")
 
 iph <- select(iph, all_of(iph_vars)) |>
   filter(if_any(starts_with("PRCDR_CD"),  ~. %in% codes)) |>
   filter(!is.na(BENE_ID)) |>
   mutate(SRVC_BGN_DT = case_when(is.na(SRVC_BGN_DT) ~ SRVC_END_DT, TRUE ~ SRVC_BGN_DT)) |>
-  collect()
+  collect() |>
+  mutate(SRVC_BGN_DT = fifelse(is.na(SRVC_BGN_DT), SRVC_END_DT, SRVC_BGN_DT),
+         maxdate = pmax(SRVC_BGN_DT, SRVC_END_DT, ADMSN_DT, DSCHRG_DT,
+                        # PRCDR_CD_DT_1, PRCDR_CD_DT_2, PRCDR_CD_DT_3, PRCDR_CD_DT_4, PRCDR_CD_DT_5, PRCDR_CD_DT_6,
+                        na.rm = TRUE),
+         SRVC_END_DT = fifelse(SRVC_BGN_DT > SRVC_END_DT, maxdate, SRVC_END_DT)) |>
+  select(BENE_ID, CLM_ID, SRVC_BGN_DT, SRVC_END_DT, PRCDR_CD_1, PRCDR_CD_2, PRCDR_CD_3, PRCDR_CD_4, PRCDR_CD_5, PRCDR_CD_6)
   
 iph <- iph |>
   pivot_longer(cols = starts_with("PRCDR_CD"),

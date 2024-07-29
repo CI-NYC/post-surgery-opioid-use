@@ -22,6 +22,7 @@ bipolar <- readRDS(file.path(confound_dir, "confounder_bipolar.rds"))
 substance <- readRDS(file.path(confound_dir, "confounder_alc_subst_smoke.rds"))
 pain <- readRDS(file.path(confound_dir, "confounder_pain.rds"))
 surgery_type <- readRDS(file.path(confound_dir, "confound_major_surgery.rds"))
+length_of_stay <- readRDS(file.path(confound_dir, "length_of_stay.rds"))
 
 cohort <- cohort |>
   left_join(age, by = c("BENE_ID", "CLM_ID")) |>
@@ -33,6 +34,7 @@ cohort <- cohort |>
   left_join(substance, by = "BENE_ID") |>
   left_join(pain, by = "BENE_ID") |>
   left_join(surgery_type, by = "BENE_ID") |>
+  left_join(length_of_stay, by = "BENE_ID") |>
   mutate(has_anxiety = replace(has_anxiety, is.na(has_anxiety), 0),
          has_depression = replace(has_depression, is.na(has_depression), 0),
          has_bipolar = replace(has_bipolar, is.na(has_bipolar), 0))

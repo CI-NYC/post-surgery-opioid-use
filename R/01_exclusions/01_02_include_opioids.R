@@ -76,6 +76,14 @@ rxl <- select(rxl, all_of(rxl_vars)) |>
 
 claims_rxl_merged <- left_join(claims, rxl, by="BENE_ID", relationship = "many-to-many")
 
+# Some prescriptions appear to be filled while the patient is in the hopsital. 
+# The belief is that these opioids are going to be taken after the patient is discharged,
+# rather than during the hospital stay.
+# Therefore, our best guess is to change the date that the patient STARTS taking 
+# the opioids to be the day that they are discharged from the hospital:
+claims_rxl_merged <- claims_rxl_merged |>
+  mutate(RX_FILL_DT = if_else(RX_FILL_DT %within% interval(surgery_dt, discharge_dt), discharge_dt, RX_FILL_DT))
+
 claims_rxl_merged[, eligible_opioid := 
                     as.numeric(RX_FILL_DT %within% interval(surgery_dt %m-% days(30),
                                                             discharge_dt %m+% days(14)))] 
@@ -87,6 +95,7 @@ opioids_for_surgery <- claims_rxl_merged[eligible_opioid==1, .(BENE_ID,
                                                                NDC, 
                                                                NDC_QTY, 
                                                                DAYS_SUPPLY)]
+
 
 saveRDS(opioids_for_surgery, "/mnt/general-data/disability/post_surgery_opioid_use/opioid_data/opioids_for_surgery.rds")
 
@@ -102,6 +111,8 @@ cohort_exclusion_eligible_opioid <- claims_rxl_merged |>
   ungroup() |>
   select(BENE_ID, CLM_ID, cohort_exclusion_eligible_opioid) |>
   distinct()
+
+
 
 saveRDS(cohort_exclusion_eligible_opioid, "/mnt/general-data/disability/post_surgery_opioid_use/exclusion/cohort_exclusion_eligible_opioid.rds")
 

@@ -1,7 +1,7 @@
 # -------------------------------------
 # Script: new_moud
 # Author: Anton Hung 2024-05-16
-# Purpose:
+# Purpose: combined the three MOUD into a single variable
 # Notes:
 # -------------------------------------
 
@@ -26,7 +26,6 @@ bup <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediat
 all_moud <- rbind(met, nal, bup)
 
 
-# MET
 moud_cohort <- left_join(cohort, all_moud, by="BENE_ID")
 
 moud_cohort[, has_moud := 

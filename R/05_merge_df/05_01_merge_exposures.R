@@ -13,9 +13,11 @@ opioid_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/opioid_data"
 mme <- readRDS(file.path(opioid_dir, "surgery_mean_daily_dose_mme_truncated.rds"))
 days_supplied <- readRDS(file.path(opioid_dir, "surgery_opioid_days_supplied.rds"))
 days_continuous <- readRDS(file.path(opioid_dir, "surgery_opioids_days_continuous.rds"))
+multiple_opioids <- readRDS(file.path(opioid_dir, "multiple_opioids.rds"))
 
 
-cohort <- mme |>
+cohort <- multiple_opioids |>
+  left_join(mme) |>
   left_join(days_supplied) |>
   left_join(days_continuous)
 
