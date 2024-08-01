@@ -33,9 +33,9 @@ combine_intervention_observed <- function(outcome, shift, c_section_identifier) 
            conf.low = 1-old.conf.high,
            conf.high = 1-old.conf.low,
            t = as.numeric(t),
-           type = "observed") |>
+           type = "no reduction") |>
     select(-c(old.conf.low, old.conf.high)) |>
-    add_row(t = 0, estimator = "TMLE", estimate = 0, std.error = 0, conf.low = 0, conf.high = 0, type = 'observed')
+    add_row(t = 0, estimator = "TMLE", estimate = 0, std.error = 0, conf.low = 0, conf.high = 0, type = 'no reduction')
   
   # prepare results for the intervention data
   results_intervention <- map_dfr(lmtp_object$intervention, tidy, .id = "t") |> 
@@ -45,13 +45,14 @@ combine_intervention_observed <- function(outcome, shift, c_section_identifier) 
            conf.low = 1-old.conf.high,
            conf.high = 1-old.conf.low,
            t = as.numeric(t),
-           type = "intervention") |>
+           type = "hypothetical reduction") |>
     select(-c(old.conf.low, old.conf.high)) |>
-    add_row(t = 0, estimator = "TMLE", estimate = 0, std.error = 0, conf.low = 0, conf.high = 0, type = 'intervention')
+    add_row(t = 0, estimator = "TMLE", estimate = 0, std.error = 0, conf.low = 0, conf.high = 0, type = 'hypothetical reduction')
   
   
   # bind the observed and intervention results together
-  combined_results <- rbind(results_observed,results_intervention)
+  combined_results <- rbind(results_observed,results_intervention) |>
+    rename(Intervention = type)
 }
 
 
@@ -61,27 +62,28 @@ plot_surv <- function(outcome, c_section_identifier){
   '
   
   combined_results <- rbind(combine_intervention_observed(outcome, "shift_1", c_section_identifier) |>
-                              mutate(shift = "Decrease in both"),
+                              mutate(shift = "i"),
                             combine_intervention_observed(outcome, "shift_2", c_section_identifier) |>
-                              mutate(shift = "Decrease in MME"),
+                              mutate(shift = "ii"),
                             combine_intervention_observed(outcome, "shift_3", c_section_identifier) |>
-                              mutate(shift = "Decrease in days"))
+                              mutate(shift = "iii"))
   
   write.csv(combined_results, paste0(result_dir, "/lmtp_results_", c_section_identifier, "_", outcome, ".csv"))
   
   # plot the survival curves for observed data and intervention
   p <- ggplot(combined_results, aes(x = t, y = estimate)) + 
-    geom_point(aes(colour = type), size = 3) +
-    geom_line(aes(colour = type)) +
-    geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = type), alpha = 0.3, show.legend = F) +
-    labs(x = "", y = "estimated incidence") + 
+    geom_point(aes(colour = Intervention), size = 3) +
+    geom_line(aes(colour = Intervention)) +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = Intervention), alpha = 0.3, show.legend = F) +
+    labs(x = "", y = "Absolute risk", title="(A)") + 
     scale_x_continuous(labels = c("0","6","12","18","24")) +
     scale_y_continuous(labels = scales::label_number(accuracy = 0.0001)) +
     facet_grid(cols = vars(shift)) +
     theme_light() +
     theme(plot.title = element_text(hjust = 0.5),
           strip.text = element_text(color = "black"),
-          plot.margin = unit(c(5.5, 5.5, 5.5, 13.5), "pt"))
+          plot.margin = unit(c(5.5, 5.5, 5.5, 9.5), "pt"),
+          strip.text.x = element_text(size = 14))
   
   # save the plot
   print(p)
@@ -137,32 +139,35 @@ plot_survdiff <- function(outcome, c_section_identifier){
   
   # load lmtp results
   results_contrast <- rbind(combine_contrasts(outcome, "shift_1", c_section_identifier) |>
-                              mutate(shift = "Decrease in both"),
+                              mutate(shift = "i"),
                             combine_contrasts(outcome, "shift_2", c_section_identifier) |>
-                              mutate(shift = "Decrease in MME"),
+                              mutate(shift = "ii"),
                             combine_contrasts(outcome, "shift_3", c_section_identifier) |>
-                              mutate(shift = "Decrease in days")
+                              mutate(shift = "iii")
                             ) |>
-    mutate(type="intervention") # This column has no useful meaning whatsoever. It is used in the fake legend because the longest word in the survival plot legend is "intervention". Therefore, this will make sure that both legends are the same width.
+    mutate(Intervention="hypothetical reduction") # This column has no useful meaning whatsoever. It is used in the fake legend because the longest word in the survival plot legend is "hypothetical reduction". Therefore, this will make sure that both legends are the same width.
 
   write.csv(results_contrast, paste0(result_dir, "/lmtp_contrasts_", c_section_identifier, "_", outcome, ".csv"))
   
   # make the plot
   p <- ggplot(results_contrast, aes(x = t, y = theta)) +
-    geom_line(aes(x=t, y=c(rep(0,length(theta))), color = type)) + # making a white, unnoticeable line at y=0 for legend hiding purposes
+    geom_line(aes(x=t, y=c(rep(0,length(theta))), color = Intervention)) + # making a white, unnoticeable line at y=0 for legend hiding purposes
     geom_line() +
     geom_point(size = 3) +
     geom_hline(yintercept = 0, linetype = "dotted") +
     geom_ribbon(aes(ymin = conf.low, ymax = conf.high),fill = "grey",alpha = 0.3, show.legend = F) +
     labs(
       x = "month",
-      y = expression(paste("difference ", (Y[intervention] - Y[observed])))
+      y = expression(paste("Risk difference")),
+      title = "(B)"
     ) +
     facet_grid(cols = vars(shift)) +
     theme_light() +
-    theme(legend.title = element_text(color = "white"), # hide the legend title
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.title = element_text(color = "white"), # hide the legend title
           legend.text = element_text(color = "white"), # hide the legend labels
-          strip.text = element_text(color = "black")) +
+          strip.text = element_text(color = "black"),
+          strip.text.x = element_text(size = 14)) +
     scale_color_manual(values = c("white")) + # making the line defined in the first line of this plot white and hidden. 
     scale_x_continuous(labels = c("0","6","12","18","24")) +
     scale_y_continuous(labels = scales::label_number(accuracy = 0.0001))
@@ -176,19 +181,19 @@ plot_survdiff <- function(outcome, c_section_identifier){
 p1 <- plot_surv("Y2", "other")
 p2 <- plot_survdiff("Y2", "other")
 pdf(file.path(result_dir, "plots_other_hillary.pdf"), width = 9, height = 6)
-grid.arrange(p1, p2, ncol= 1, top = "Non-C-sections, OUD estimates (ICD only)")
+grid.arrange(p1, p2, ncol= 1)
 dev.off()
 
 p1 <- plot_surv("Y3", "other")
 p2 <- plot_survdiff("Y3", "other")
 pdf(file.path(result_dir, "plots_other_OUD.pdf"), width = 9, height = 6)
-grid.arrange(p1, p2, ncol= 1, top = "Non-C-sections, Comprehensive OUD estimates")
+grid.arrange(p1, p2, ncol= 1)
 dev.off()
 
 p1 <- plot_surv("Y4", "other")
 p2 <- plot_survdiff("Y4", "other")
 pdf(file.path(result_dir, "plots_other_MOUD.pdf"), width = 9, height = 6)
-grid.arrange(p1, p2, ncol = 1, top = "Non-C-sections, MOUD estimates")
+grid.arrange(p1, p2, ncol = 1)
 dev.off()
 
 
@@ -197,17 +202,17 @@ dev.off()
 p1 <- plot_surv("Y2", "c-section")
 p2 <- plot_survdiff("Y2", "c-section")
 pdf(file.path(result_dir, "plots_c-section_hillary.pdf"), width = 9, height = 6)
-grid.arrange(p1, p2, ncol= 1, top = "Cesarian sections, OUD estimates (ICD only)")
+grid.arrange(p1, p2, ncol= 1)
 dev.off()
 
 p1 <- plot_surv("Y3", "c-section")
 p2 <- plot_survdiff("Y3", "c-section")
 pdf(file.path(result_dir, "plots_c-section_OUD.pdf"), width = 9, height = 6)
-grid.arrange(p1, p2, ncol= 1, top = "Cesarian sections, Comprehensive OUD estimates")
+grid.arrange(p1, p2, ncol= 1)
 dev.off()
 
 p1 <- plot_surv("Y4", "c-section")
 p2 <- plot_survdiff("Y4", "c-section")
 pdf(file.path(result_dir, "plots_c-section_MOUD.pdf"), width = 9, height = 6)
-grid.arrange(p1, p2, ncol= 1, top = "Cesarian sections, MOUD estimates")
+grid.arrange(p1, p2, ncol= 1)
 dev.off()

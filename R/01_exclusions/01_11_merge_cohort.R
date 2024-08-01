@@ -39,7 +39,7 @@ joined_surgeries <- claims |>
   left_join(exclusion_age, by = c("BENE_ID", "CLM_ID")) |>
   left_join(exclusion_dems, by = c("BENE_ID", "CLM_ID")) |>
   left_join(exclusion_moud, by = c("BENE_ID", "CLM_ID")) |>
-  mutate(cohort_exclusion_pregnancy = case_when(is.na(cohort_exclusion_pregnancy) ~ 0, TRUE ~ cohort_exclusion_pregnancy),
+  mutate(cohort_exclusion_pregnancy = case_when(is.na(cohort_exclusion_pregnancy) | PRCDR_CD %in% c("59510","59514","59515") ~ 0, TRUE ~ cohort_exclusion_pregnancy), # reverse exclusion variable for pregnancy if the procedure they underwent is a c-section
          cohort_exclusion_cancer_elig = case_when(is.na(cohort_exclusion_cancer_elig) ~ 0, TRUE ~ cohort_exclusion_cancer_elig),
          cohort_exclusion_dual = case_when(is.na(cohort_exclusion_dual) ~ 0, TRUE ~ cohort_exclusion_dual))
 

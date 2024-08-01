@@ -19,7 +19,7 @@ months_to_dropout <- readRDS("/mnt/general-data/disability/post_surgery_opioid_u
 #   rename(nal_start_dt = moud_start_dt)
 # bup <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_bup.rds") |>
 #   rename(bup_start_dt = moud_start_dt)
-poison <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_poison.rds")
+# poison <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_poison.rds")
 hillary <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_hillary.rds")
 oud <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_oud.rds")
 moud <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/cohort_has_new_moud.rds")
@@ -72,7 +72,7 @@ moud <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/c
 cohort <- cohort |>
   select(BENE_ID, PRCDR_CD, followup_start_dt) |>
   left_join(months_to_dropout |> select(BENE_ID, enrolled_until)) |>
-  left_join(poison |> select(BENE_ID, oud_poison_dt)) |>
+  # left_join(poison |> select(BENE_ID, oud_poison_dt)) |>
   left_join(hillary |> select(BENE_ID, oud_hillary_dt)) |>
   left_join(oud |> select(BENE_ID, oud_dt)) |>
   left_join(moud |> select(BENE_ID, moud_start_dt))
@@ -140,16 +140,14 @@ for (i in 1:4){
 
   tic()
   censor_column <- paste0("C_", i)
-  last_uncensored <- c(paste0("Y1_", i),
-                    paste0("Y2_", i),
+  last_uncensored <- c(paste0("Y2_", i),
                     paste0("Y3_", i),
                     paste0("Y4_", i))
 
   censored <- which(cohort[,censor_column] == 0)
 
   for (j in i:4){
-    carry_forward_columns <- c(paste0("Y1_", j),
-                               paste0("Y2_", j),
+    carry_forward_columns <- c(paste0("Y2_", j),
                                paste0("Y3_", j),
                                paste0("Y4_", j))
     cohort[censored, carry_forward_columns] <- cohort[censored, last_uncensored]

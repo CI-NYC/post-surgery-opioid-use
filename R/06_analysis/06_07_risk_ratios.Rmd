@@ -1,0 +1,207 @@
+---
+title: "06_07_risk_ratios"
+author: "Anton Hung"
+date: "2024-08-01"
+output: html_document
+---
+
+```{r}
+library(data.table)
+library(dplyr)
+```
+
+```{r}
+cs_dat <- read.csv("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4/plots/lmtp_results_c-section_Y2.csv") |>
+  select(estimate, std.error, conf.low, conf.high, Intervention, shift) |>
+  as.data.table()
+
+cs_dat <- cbind(cs_dat[Intervention == "hypothetical reduction"], cs_dat[Intervention == "no reduction"])[, -c(5, 6, 11)]
+
+colnames(cs_dat) <- c("estimate.i", "std.error.i", "conf.low.i", "conf.high.i", "estimate.o", "std.error.o", "conf.low.o", "conf.high.o", "shift")
+
+cs_dat <- cs_dat |> mutate(t = rep(c(1,2,3,4,0), 3)) |> arrange(shift, t)
+
+cs_dat
+```
+
+```{r}
+# Calculate Risk Ratio and Confidence Intervals
+result_df <- cs_dat %>%
+  mutate(
+    RR = estimate.i / estimate.o,
+    log_RR = log(RR),
+    SE_log_RR = sqrt((std.error.i / estimate.i)^2 + (std.error.o / estimate.o)^2),
+    CI_low = exp(log_RR - 1.96 * SE_log_RR),
+    CI_high = exp(log_RR + 1.96 * SE_log_RR)
+  ) %>%
+  select(shift, t, RR, CI_low, CI_high)
+
+# View the result
+print(result_df)
+
+```
+
+
+
+
+
+```{r}
+lmtp_contrast_modified <- function(..., ref, type = c("additive", "rr", "or")) {
+  fits <- list(...)
+
+  # assertLmtpList(fits)
+  # assertDr(fits)
+  # assertRefClass(ref)
+  # assertContrastType(match.arg(type), fits, .var.name = "type")
+
+  weights <- lapply(fits, function(x) x$weights)
+  if (isFALSE(is.numeric(ref))) {
+    weights <- append(weights, list(ref$weights))
+  }
+  # assertSameWeights(weights)
+
+  if (is.numeric(ref)) {
+    type <- "additive"
+    message("Non-estimated reference value, defaulting type = 'additive'")
+  } else {
+    type <- match.arg(type)
+  }
+
+  switch(type,
+         # "additive" = contrast_additive(fits = fits, ref = ref),
+         "rr" = contrast_rr(fits = fits, ref = ref))
+         # "or" = contrast_or(fits = fits, ref = ref))
+}
+
+
+contrast_rr <- function(fits, ref) {
+  res <- lapply(fits, function(x) contrast_rr_single(x, ref))
+  vals <- Reduce(rbind, lapply(res, function(x) x[["vals"]]))
+  eifs <- Reduce(cbind, lapply(res, function(x) x[["eif"]]))
+
+  out <- list(
+    type = "relative risk",
+    null = 1,
+    vals = vals,
+    eifs = eifs
+  )
+
+  class(out) <- "lmtp_contrast"
+  return(out)
+}
+
+contrast_rr_single <- function(fit, ref) {
+  theta <- (1-fit$theta) / (1-ref$theta)
+  log_eif <- ((1-fit$eif)*fit$weights / (1-fit$theta)) -
+    ((1-ref$eif)*ref$weights / (1-ref$theta))
+
+  if (is.null(fit$id)) {
+    fit$id <- 1:length(eif)
+  }
+  clusters <- split(log_eif, fit$id)
+  j <- length(clusters)
+  std.error <- sqrt(var(vapply(clusters, function(x) mean(x), 1)) / j)
+  conf.low <- exp(log(theta) - qnorm(0.975) * std.error)
+  conf.high <- exp(log(theta) + qnorm(0.975) * std.error)
+  p.value <- pnorm(abs(log(theta)) / std.error, lower.tail = FALSE) * 2
+
+  list(
+    vals = data.frame(
+      theta = theta,
+      shift = fit$theta,
+      ref = ref$theta,
+      std.error = std.error,
+      conf.low = conf.low,
+      conf.high = conf.high,
+      p.value = p.value
+    ),
+    eif = log_eif
+  )
+}
+
+
+```
+
+
+```{r}
+result_df <- data.frame()
+
+for (shift in 1:3){
+  results <- readRDS(paste0("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4/lmtp_result_c-section_shift_",
+                            shift, "_Y2.rds"))
+  for (t in 0:4) {
+    if (t == 0){
+      result_df <- rbind(result_df, c(0,0,0,0,0,0,0))
+      names(result_df) <- c("theta","shift","ref","std.error","conf.low","conf.high","p.value")
+      next
+    }
+    result_df <- rbind(result_df, lmtp_contrast_modified(results$intervention[[t]], ref = results$observed[[t]], type="rr")$vals)
+  }
+}
+
+result_df <- result_df |>
+  mutate(shift = c(rep("i",5),rep("ii",5),rep("iii",5)),
+         t = rep(c(1,2,3,4,0), 3)) |>
+  select(shift, t, RR = theta, RR.CI.low = conf.low, RR.CI.high = conf.high)
+         
+  
+result_df
+
+```
+
+```{r}
+# RD
+
+result <- read.csv("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4/plots/lmtp_contrasts_c-section_Y2.csv")
+result_df <- cbind(result_df, result |>
+                     select(RD = theta, RD.CI.low = conf.low, RD.CI.high = conf.high)) |>
+    mutate(across(3:5, ~ round(., 3)),
+           across(6:8, ~ round(., 6)))
+
+write.csv(result_df, "~/medicaid/post_surgery_opioid_use/R/06_analysis/c-section_RD_and_RR.csv")
+
+
+```
+
+
+```{r}
+result_df <- data.frame()
+
+for (shift in 1:3){
+  results <- readRDS(paste0("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4/lmtp_result_other_shift_",
+                            shift, "_Y2.rds"))
+  for (t in 0:4) {
+    if (t == 0){
+      result_df <- rbind(result_df, c(0,0,0,0,0,0,0))
+      names(result_df) <- c("theta","shift","ref","std.error","conf.low","conf.high","p.value")
+      next
+    }
+    result_df <- rbind(result_df, lmtp_contrast_modified(results$intervention[[t]], ref = results$observed[[t]], type="rr")$vals)
+  }
+}
+
+result_df <- result_df |>
+  mutate(shift = c(rep("i",5),rep("ii",5),rep("iii",5)),
+         t = rep(c(1,2,3,4,0), 3)) |>
+  select(shift, t, RR = theta, RR.CI.low = conf.low, RR.CI.high = conf.high)
+         
+  
+result_df
+
+```
+
+```{r}
+# RD
+
+result <- read.csv("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4/plots/lmtp_contrasts_other_Y2.csv")
+result_df <- cbind(result_df, result |>
+                     select(RD = theta, RD.CI.low = conf.low, RD.CI.high = conf.high)) |>
+    mutate(across(3:5, ~ round(., 3)),
+           across(6:8, ~ round(., 6)))
+
+result_df
+
+write.csv(result_df, "~/medicaid/post_surgery_opioid_use/R/06_analysis/other_RD_and_RR.csv")
+
+
+```

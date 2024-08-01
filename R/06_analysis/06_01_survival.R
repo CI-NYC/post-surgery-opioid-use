@@ -269,6 +269,6 @@ run_lmtp <- function(dat_lmtp, W, c_section_identifier) {
 }
 
 
-# run_lmtp(dat_non_c_section, W_non_c_section, "other")
+run_lmtp(dat_non_c_section, W_non_c_section, "other")
 run_lmtp(dat_only_c_section, W_only_c_section, "c-section")
 
