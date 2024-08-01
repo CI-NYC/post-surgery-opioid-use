@@ -158,7 +158,7 @@ result_df <- cbind(result_df, result |> arrange(shift,t) |>
     mutate(across(3:5, ~ round(., 3)),
            across(6:8, ~ round(., 6)))
 
-write.csv(result_df, "~/medicaid/post_surgery_opioid_use/R/06_analysis/c-section_RD_and_RR.csv")
+write.csv(result_df, "~/medicaid/post_surgery_opioid_use/R/06_analysis/c-section_RD_and_RR.csv", row.names = F)
 
 
 ```
@@ -201,7 +201,7 @@ result_df <- cbind(result_df, result |> arrange(shift,t) |>
 
 result_df
 
-write.csv(result_df, "~/medicaid/post_surgery_opioid_use/R/06_analysis/other_RD_and_RR.csv")
+write.csv(result_df, "~/medicaid/post_surgery_opioid_use/R/06_analysis/other_RD_and_RR.csv", row.names = F)
 
 
 ```
