@@ -153,7 +153,7 @@ result_df
 # RD
 
 result <- read.csv("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4/plots/lmtp_contrasts_c-section_Y2.csv")
-result_df <- cbind(result_df, result |>
+result_df <- cbind(result_df, result |> arrange(shift,t) |>
                      select(RD = theta, RD.CI.low = conf.low, RD.CI.high = conf.high)) |>
     mutate(across(3:5, ~ round(., 3)),
            across(6:8, ~ round(., 6)))
@@ -194,7 +194,7 @@ result_df
 # RD
 
 result <- read.csv("/mnt/general-data/disability/post_surgery_opioid_use/analysis/ver4/plots/lmtp_contrasts_other_Y2.csv")
-result_df <- cbind(result_df, result |>
+result_df <- cbind(result_df, result |> arrange(shift,t) |>
                      select(RD = theta, RD.CI.low = conf.low, RD.CI.high = conf.high)) |>
     mutate(across(3:5, ~ round(., 3)),
            across(6:8, ~ round(., 6)))
