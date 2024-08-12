@@ -8,24 +8,25 @@ To what extent does an additive increased shift in opioid a) dose (in MME), b) d
 
 Inclusion criteria:
   - age 18-64
-  - had a surgery using the ICD codes given by Lisa
+  - had a common elective surgery, defined as having any of the surgery codes given by Lisa
   - had an opioid prescribed in the range of 30 days prior to surgery to 14 days after surgery discharge
 
 Exclusion criteria:
 - history of OUD *or* overdose (any) *or* MOUD 6 months prior to surgery up to the discharge date (as a sensitivity analysis can also make this 12 months)
-- pregnant
+- pregnant (except among patients with a c-section, described in more detail later)
 - dual eligible
 - ineligible state (not in the states we are supposed to have data on)
 - cancer diagnosis
 - not continuously enrolled for 6 months prior to surgery date
 - had an opioid prescribed between 6 months prior to surgery to 1 month prior to surgery
+- surgery duration greater than 1 week.
 
 ## Observed data:
 We assume observed data $\mathbf{O}=(\mathbf{W}, \mathbf{A}, \Delta_1, \Delta_1 Y_1, ..., \Delta_{4}, \Delta_{4} Y_{4})$, where: 
 $\mathbf{W}$ represents the covariates, measured during the 6 months prior to surgery (i.e., during the washout period); 
-$\mathbf{A}$ represent prescription opioid a) dose (in MME), b) days supplied, and c) days of continuous use, measured during 30 days prior to surgery up to 14 days after surgery discharge; 
+$\mathbf{A}$ represent prescription opioid a) dose (in MME) and b) days supplied, measured during the perioperative period (30 days prior to surgery up to 14 days after surgery discharge); 
 $\Delta_t$ represents an indicator of remaining uncensored at timepoint t following surgery discharge (four timepoints 6 months apart for a total follow-up duration of 24 months in the primary analysis); surgery discharge + 14 days is time 0;
-$Y_t$ represents the outcome of i) OUD, ii) opioid overdose, and iii) MOUD initiation at time t, which is observed among those who remain uncensored. 
+$Y_t$ represents the outcome of i) OUD (using ICD-10 codes only), ii) comprehensive OUD (including non-fatal OD, ICD-10 OUD and MOUD), and iii) MOUD (alone) initiation at time t, which is observed among those who remain uncensored. 
 
 ** Note: If there is too much loss to follow up, we will need to shorten T. Can consider T=12 months. **
 
@@ -35,6 +36,7 @@ $Y_t$ represents the outcome of i) OUD, ii) opioid overdose, and iii) MOUD initi
 3. This may leave multiple surgeries for the same beneficiaries. I will take just the first surgery for anyone who has multiple. The result is a COHORT where each beneficiary can be matched to a single surgery.
 4. Exposures will be calculated for the cohort during the perioperative period.
 5. Outcomes will be calculated for the cohort during the follow-up period.
+6. Stratify the cohort by whether the procedure they received was a C-section or not.
 
 ### Inclusions/exclusions
 Some variables indicate what a surgery needs to have to be INCLUDED in the cohort, and others indicate features of a surgery that will cause it to be EXCLUDED. A flag (0 or 1) will be created for each criteria. Regardless of whether a variable is considered an inclusion or exclusion criteria, for every variable in the following table, I will be making flags that indicate that a surgery should be removed.
@@ -58,7 +60,7 @@ Some variables indicate what a surgery needs to have to be INCLUDED in the cohor
 |------------------------|------------|
 | Age                    | Should already have this after making the age exclusion variable. Found <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/02_clean_tafdebse.R#L69-L72">here</a> |
 | Sex          | Called `SEX_CD`. Can be joined from the df `joined_df.rds` located at `/mnt/general-data/disability/create_cohort/final/` |
-| Type of surgery | This is already stored as LINE_PRCDR_CD in the cohort, `first_surgeries.rds`. <p> Surgeries are defined as either a major or minor surgery as follows: surgeries with a CPT code are classified as minor surgeries, while those with an ICD-10 code are major surgeries.|
+| Type of surgery | This is already stored as LINE_PRCDR_CD in the cohort, `first_surgeries.rds`. <p> Surgeries are defined as either a major or minor surgery as follows: surgeries with a CPT code are classified as minor surgeries, while those with an ICD-10 code are major surgeries. Type of surgery is not controlled for in the C-section strata|
 | Anxiety | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_anxiety.R">here</a>. Need to make a binary indicator of whether or not there exists a claim for anxiety during the washout period. |
 | Depression | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_depression.R">here</a>. Need to make a binary indicator of whether or not there exists a claim for depression during the washout period. |
 | Bipolar | Defined <a href="https://github.com/CI-NYC/disability-chronic-pain/blob/93bbeb9d2edff361bf622a9889c7e1d811f0f238/scripts/04_define_comorbidity_vars/define_bipolar.R#L1">here</a>. Need to make a binary indicator of whether or not there exists a claim for bipolar disorder during the washout period. |
