@@ -7,12 +7,12 @@
 # -------------------------------------
 library(dplyr)
 library(data.table)
+library(survival)
 
 df1 <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_non_c_section.rds")
 # 5:22
 
-df2 <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_only_c_section.rds") |>
-  filter(!SEX_M == 1)
+df2 <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_only_c_section.rds")
 # 5:20
 
 df1 <- df1 |>
@@ -44,7 +44,7 @@ df2 <- df2 |>
   as.data.table()
   
 calc_numremaining <- function(outcome, uncensored){
-  outcome <- outcome[which(uncensored == 1 | outcome == 1)]
+  outcome <- outcome[which(uncensored == 1)]
   return(paste0("(n=",length(outcome),")"))
 }
 
@@ -84,7 +84,7 @@ demographics <- c("Age",
                   "6 days",
                   "7 days",
                   "Dose (MME)",
-                  "Days of continous use",
+                  "Days supplied",
                   "OUD (ICD only):",
                   "at 6 months",
                   "at 12 months",
@@ -118,55 +118,140 @@ length_of_stay <- paste0(length_of_stay_num, " (", length_of_stay_prop, "%)")
 mme <- paste0(round(median(df1$mean_daily_dose_mme),1)," (",
               round(quantile(df1$mean_daily_dose_mme, 0.25),1),", ",
               round(quantile(df1$mean_daily_dose_mme, 0.75),1),")")
-days <- paste0(median(df1$days_of_continuous_use)," (",
-              quantile(df1$days_of_continuous_use, 0.25),", ",
-              quantile(df1$days_of_continuous_use, 0.75),")")
+days <- paste0(median(df1$days_supplied)," (",
+              quantile(df1$days_supplied, 0.25),", ",
+              quantile(df1$days_supplied, 0.75),")")
 
 
-calc_cumincidence <- function(outcome, uncensored){
-  outcome <- outcome[which(uncensored == 1 | outcome == 1)]
-  n <- length(outcome)
-  
-  # return(n)
-  return(paste0(sum(outcome), " (",
-                round(sum(outcome)/n * 100, 2), "%)"))
-}
+
+# calc_survprob <- function(outcome, uncensored, prev = 1){
+#   n <- sum(uncensored)
+#   outcome <- outcome[which(uncensored == 1 & outcome == 0)]
+#   
+#   return(prev*length(outcome)/n)
+# }
+# 
+# disp_cumincidence <- function(outcome, uncensored, prev = 1){
+#   res <- 1-calc_cumincidence(outcome, uncensored, prev)
+#   
+#   outcome <- outcome[which(uncensored == 1 & outcome == 1)]
+#   return(paste0(sum(outcome), " (",
+#                 round(res * 100, 2), "%)"))
+# }
+# 
+# for (Y in c("Y2", "Y3", "Y4")){
+#     surv_prob_1 <- calc_survprob(df1[[paste0(Y,"_1")]], df1$C_1)
+#     surv_prob_2 <- calc_survprob(df1[[paste0(Y,"_2")]], df1$C_2, surv_prob_1)
+#     surv_prob_3 <- calc_survprob(df1[[paste0(Y,"_3")]], df1$C_3, surv_prob_2)
+#     surv_prob_4 <- calc_survprob(df1[[paste0(Y,"_4")]], df1$C_4, surv_prob_3)
+# }
+
+
 
 # outcomes
-outcomes <- c(NA,
-  calc_cumincidence(df1$Y2_1, df1$C_1),
-  calc_cumincidence(df1$Y2_2, df1$C_2),
-  calc_cumincidence(df1$Y2_3, df1$C_3),
-  calc_cumincidence(df1$Y2_4, df1$C_4),
-  NA,
-  calc_cumincidence(df1$Y4_1, df1$C_1),
-  calc_cumincidence(df1$Y4_2, df1$C_2),
-  calc_cumincidence(df1$Y4_3, df1$C_3),
-  calc_cumincidence(df1$Y4_4, df1$C_4),
-  NA,
-  calc_cumincidence(df1$Y3_1, df1$C_1),
-  calc_cumincidence(df1$Y3_2, df1$C_2),
-  calc_cumincidence(df1$Y3_3, df1$C_3),
-  calc_cumincidence(df1$Y3_4, df1$C_4))
+# outcomes <- c(NA,
+#   disp_cumincidence(df1$Y2_1, df1$C_1),
+#   disp_cumincidence(df1$Y2_2, df1$C_2, calc_cumincidence(df1$Y2_1, df1$C_1)),
+#   disp_cumincidence(df1$Y2_3, df1$C_3, calc_cumincidence(df1$Y2_2, df1$C_2, calc_cumincidence(df1$Y2_1, df1$C_1))),
+#   disp_cumincidence(df1$Y2_4, df1$C_4, calc_cumincidence(df1$Y2_3, df1$C_3, calc_cumincidence(df1$Y2_2, df1$C_2, calc_cumincidence(df1$Y2_1, df1$C_1)))),
+#   NA,
+#   disp_cumincidence(df1$Y4_1, df1$C_1),
+#   disp_cumincidence(df1$Y4_2, df1$C_2, calc_cumincidence(df1$Y4_1, df1$C_1)),
+#   disp_cumincidence(df1$Y4_3, df1$C_3, calc_cumincidence(df1$Y4_2, df1$C_2, calc_cumincidence(df1$Y4_1, df1$C_1))),
+#   disp_cumincidence(df1$Y4_4, df1$C_4, calc_cumincidence(df1$Y4_3, df1$C_3, calc_cumincidence(df1$Y4_2, df1$C_2, calc_cumincidence(df1$Y4_1, df1$C_1)))),
+#   NA,
+#   disp_cumincidence(df1$Y3_1, df1$C_1),
+#   disp_cumincidence(df1$Y3_2, df1$C_2, calc_cumincidence(df1$Y3_1, df1$C_1)),
+#   disp_cumincidence(df1$Y3_3, df1$C_3, calc_cumincidence(df1$Y3_2, df1$C_2, calc_cumincidence(df1$Y3_1, df1$C_1))),
+#   disp_cumincidence(df1$Y3_4, df1$C_4, calc_cumincidence(df1$Y3_3, df1$C_3, calc_cumincidence(df1$Y3_2, df1$C_2, calc_cumincidence(df1$Y3_1, df1$C_1)))))
+
+month <- c("0","6","12","18","24")
+number_at_risk <- c(nrow(df1),
+                    sum(df1$C_1),
+                    nrow(df1) - sum(pmax(df1$C_2==0,df1$Y2_1)),
+                    nrow(df1) - sum(pmax(df1$C_3==0,df1$Y2_2)),
+                    nrow(df1) - sum(pmax(df1$C_4==0,df1$Y2_3))
+                    )
+number_of_cases <- c(0,
+                     sum(df1$Y2_1),
+                     sum(df1$Y2_2-df1$Y2_1),
+                     sum(df1$Y2_3-df1$Y2_2),
+                     sum(df1$Y2_4-df1$Y2_3))
+number_censored <- c(0,
+                     sum(df1$C_1==0),
+                     sum(df1$C_1-df1$C_2),
+                     sum(df1$C_2-df1$C_3),
+                     sum(df1$C_3-df1$C_4))
+cbind(month,number_at_risk,number_of_cases,number_censored)
+
+
+survival_prob <- numeric(length(month))
+survival_prob[1] <- 1
+# Calculate survival probability at each time point
+for (i in 2:length(month)) {
+  survival_prob[i] <- survival_prob[i-1] * (1 - number_of_cases[i] / number_at_risk[i])
+}
+
+1-survival_prob
+
+new_cases <- c()
+cum_inc <- c()
+num_remaining_other <- c(rep(NA, 36))
+
+for (Y in c("Y2","Y3","Y4")){
+  time_to_outcome <- ifelse(df1[[paste0(Y,"_1")]] == 1, 1,
+                            ifelse(df1[[paste0(Y,"_2")]] == 1, 2,
+                                   ifelse(df1[[paste0(Y,"_3")]] == 1, 3,
+                                          ifelse(df1[[paste0(Y,"_4")]] == 1, 4, Inf))))
+  time_to_censor <- ifelse(df1$C_1 == 0, 0,
+                           ifelse(df1$C_2 == 0, 1,
+                                  ifelse(df1$C_3 == 0, 2,
+                                         ifelse(df1$C_4 == 0, 3, 4))))
+  
+  # Determine the event status
+  status <- ifelse(time_to_outcome <= time_to_censor, 1, 0)
+  
+  # Determine the time variable
+  time <- pmin(time_to_outcome, time_to_censor)
+  
+  # Create the Surv object
+  surv_obj <- Surv(time, status)
+  
+  # Fit the survival curve
+  fit <- survfit(surv_obj ~ 1)
+  
+  new_cases <- c(new_cases, cumsum(fit$n.event))
+  cum_inc <- c(cum_inc, 1-fit$surv)
+  num_remaining_other <- c(num_remaining_other, paste0("(n=",fit$n.risk,")*"))
+}
+
+# table(as.data.frame(cbind(time_to_outcome,time_to_censor, status, time))|> filter(time_to_outcome < 9999) |> pull(status))
+
+outcomes <- paste0(new_cases," (",round(cum_inc*100,2),"%)")
+
+
+
+
+
 
 
 other <- c(age, number_proportion, length_of_stay, mme, days, outcomes)
 
-num_remaining_other <- c(rep(NA, 37),
-                         calc_numremaining(df1$Y2_1, df1$C_1),
-                         calc_numremaining(df1$Y2_2, df1$C_2),
-                         calc_numremaining(df1$Y2_3, df1$C_3),
-                         calc_numremaining(df1$Y2_4, df1$C_4),
-                         NA,
-                         calc_numremaining(df1$Y4_1, df1$C_1),
-                         calc_numremaining(df1$Y4_2, df1$C_2),
-                         calc_numremaining(df1$Y4_3, df1$C_3),
-                         calc_numremaining(df1$Y4_4, df1$C_4),
-                         NA,
-                         calc_numremaining(df1$Y3_1, df1$C_1),
-                         calc_numremaining(df1$Y3_2, df1$C_2),
-                         calc_numremaining(df1$Y3_3, df1$C_3),
-                         calc_numremaining(df1$Y3_4, df1$C_4))
+# num_remaining_other <- c(rep(NA, 37),
+#                          calc_numremaining(df1$Y2_1, df1$C_1),
+#                          calc_numremaining(df1$Y2_2, df1$C_2),
+#                          calc_numremaining(df1$Y2_3, df1$C_3),
+#                          calc_numremaining(df1$Y2_4, df1$C_4),
+#                          NA,
+#                          calc_numremaining(df1$Y4_1, df1$C_1),
+#                          calc_numremaining(df1$Y4_2, df1$C_2),
+#                          calc_numremaining(df1$Y4_3, df1$C_3),
+#                          calc_numremaining(df1$Y4_4, df1$C_4),
+#                          NA,
+#                          calc_numremaining(df1$Y3_1, df1$C_1),
+#                          calc_numremaining(df1$Y3_2, df1$C_2),
+#                          calc_numremaining(df1$Y3_3, df1$C_3),
+#                          calc_numremaining(df1$Y3_4, df1$C_4))
 
 # table_one <- data.frame(
 #   demographics = demographics,
@@ -192,44 +277,78 @@ number_proportion <- paste0(number, " (", round(proportion*100,2), "%)")
 mme <- paste0(round(median(df2$mean_daily_dose_mme),1)," (",
               round(quantile(df2$mean_daily_dose_mme, 0.25),1),", ",
               round(quantile(df2$mean_daily_dose_mme, 0.75),1),")")
-days <- paste0(median(df2$days_of_continuous_use)," (",
-               quantile(df2$days_of_continuous_use, 0.25),", ",
-               quantile(df2$days_of_continuous_use, 0.75),")")
+days <- paste0(median(df2$days_supplied)," (",
+               quantile(df2$days_supplied, 0.25),", ",
+               quantile(df2$days_supplied, 0.75),")")
 
-# outcomes
-outcomes <- c(NA,
-              calc_cumincidence(df2$Y2_1, df2$C_1),
-              calc_cumincidence(df2$Y2_2, df2$C_2),
-              calc_cumincidence(df2$Y2_3, df2$C_3),
-              calc_cumincidence(df2$Y2_4, df2$C_4),
-              NA,
-              calc_cumincidence(df2$Y4_1, df2$C_1),
-              calc_cumincidence(df2$Y4_2, df2$C_2),
-              calc_cumincidence(df2$Y4_3, df2$C_3),
-              calc_cumincidence(df2$Y4_4, df2$C_4),
-              NA,
-              calc_cumincidence(df2$Y3_1, df2$C_1),
-              calc_cumincidence(df2$Y3_2, df2$C_2),
-              calc_cumincidence(df2$Y3_3, df2$C_3),
-              calc_cumincidence(df2$Y3_4, df2$C_4))
+# # outcomes
+# outcomes <- c(NA,
+#   disp_cumincidence(df2$Y2_1, df2$C_1),
+#   disp_cumincidence(df2$Y2_2, df2$C_2, calc_cumincidence(df2$Y2_1, df2$C_1)),
+#   disp_cumincidence(df2$Y2_3, df2$C_3, calc_cumincidence(df2$Y2_2, df2$C_2, calc_cumincidence(df2$Y2_1, df2$C_1))),
+#   disp_cumincidence(df2$Y2_4, df2$C_4, calc_cumincidence(df2$Y2_3, df2$C_3, calc_cumincidence(df2$Y2_2, df2$C_2, calc_cumincidence(df2$Y2_1, df2$C_1)))),
+#   NA,
+#   disp_cumincidence(df2$Y4_1, df2$C_1),
+#   disp_cumincidence(df2$Y4_2, df2$C_2, calc_cumincidence(df2$Y4_1, df2$C_1)),
+#   disp_cumincidence(df2$Y4_3, df2$C_3, calc_cumincidence(df2$Y4_2, df2$C_2, calc_cumincidence(df2$Y4_1, df2$C_1))),
+#   disp_cumincidence(df2$Y4_4, df2$C_4, calc_cumincidence(df2$Y4_3, df2$C_3, calc_cumincidence(df2$Y4_2, df2$C_2, calc_cumincidence(df2$Y4_1, df2$C_1)))),
+#   NA,
+#   disp_cumincidence(df2$Y3_1, df2$C_1),
+#   disp_cumincidence(df2$Y3_2, df2$C_2, calc_cumincidence(df2$Y3_1, df2$C_1)),
+#   disp_cumincidence(df2$Y3_3, df2$C_3, calc_cumincidence(df2$Y3_2, df2$C_2, calc_cumincidence(df2$Y3_1, df2$C_1))),
+#   disp_cumincidence(df2$Y3_4, df2$C_4, calc_cumincidence(df2$Y3_3, df2$C_3, calc_cumincidence(df2$Y3_2, df2$C_2, calc_cumincidence(df2$Y3_1, df2$C_1)))))
+# 
+
+new_cases <- c()
+cum_inc <- c()
+num_remaining_cs <- c(rep(NA, 36))
+
+for (Y in c("Y2", "Y3", "Y4")){
+  time_to_outcome <- ifelse(df2[[paste0(Y,"_1")]] == 1, 1,
+                            ifelse(df2[[paste0(Y,"_2")]] == 1, 2,
+                                   ifelse(df2[[paste0(Y,"_3")]] == 1, 3,
+                                          ifelse(df2[[paste0(Y,"_4")]] == 1, 4, 9999))))
+  time_to_censor <- ifelse(df2$C_1 == 0, 0,
+                           ifelse(df2$C_2 == 0, 1,
+                                  ifelse(df2$C_3 == 0, 2,
+                                         ifelse(df2$C_4 == 0, 3, 4))))
+  
+  # Determine the event status
+  status <- ifelse(time_to_outcome <= time_to_censor, 1, 0)
+  
+  # Determine the time variable
+  time <- pmin(time_to_outcome, time_to_censor)
+  
+  # Create the Surv object
+  surv_obj <- Surv(time, status)
+  
+  # Fit the survival curve
+  fit <- survfit(surv_obj ~ 1)
+  
+  new_cases <- c(new_cases, cumsum(fit$n.event))
+  cum_inc <- c(cum_inc, 1-fit$surv)
+  num_remaining_cs <- c(num_remaining_cs, paste0("(n=",fit$n.risk,")*"))
+}
+
+outcomes <- paste0(new_cases," (",round(cum_inc*100,2),"%)")
 
 c_section <- c(age, number_proportion, rep(NA,7), mme, days, outcomes)
-
-num_remaining_cs <- c(rep(NA, 37),
-                      calc_numremaining(df2$Y2_1, df2$C_1),
-                      calc_numremaining(df2$Y2_2, df2$C_2),
-                      calc_numremaining(df2$Y2_3, df2$C_3),
-                      calc_numremaining(df2$Y2_4, df2$C_4),
-                      NA,
-                      calc_numremaining(df2$Y4_1, df2$C_1),
-                      calc_numremaining(df2$Y4_2, df2$C_2),
-                      calc_numremaining(df2$Y4_3, df2$C_3),
-                      calc_numremaining(df2$Y4_4, df2$C_4),
-                      NA,
-                      calc_numremaining(df2$Y3_1, df2$C_1),
-                      calc_numremaining(df2$Y3_2, df2$C_2),
-                      calc_numremaining(df2$Y3_3, df2$C_3),
-                      calc_numremaining(df2$Y3_4, df2$C_4))
+# 
+# num_remaining_cs <- c(rep(NA, 37),
+#                       calc_numremaining(df2$Y2_1, df2$C_1),
+#                       calc_numremaining(df2$Y2_2, df2$C_2),
+#                       calc_numremaining(df2$Y2_3, df2$C_3),
+#                       calc_numremaining(df2$Y2_4, df2$C_4),
+#                       NA,
+#                       calc_numremaining(df2$Y4_1, df2$C_1),
+#                       calc_numremaining(df2$Y4_2, df2$C_2),
+#                       calc_numremaining(df2$Y4_3, df2$C_3),
+#                       calc_numremaining(df2$Y4_4, df2$C_4),
+#                       NA,
+#                       calc_numremaining(df2$Y3_1, df2$C_1),
+#                       calc_numremaining(df2$Y3_2, df2$C_2),
+#                       calc_numremaining(df2$Y3_3, df2$C_3),
+#                       calc_numremaining(df2$Y3_4, df2$C_4))
 
 table_one <- data.frame(
   demographics = demographics,
@@ -240,5 +359,5 @@ table_one <- data.frame(
 )
 
 
-write.csv(table_one, "~/medicaid/post_surgery_opioid_use/output/table_one_uncertain.csv", row.names = F)
+write.csv(table_one, "~/medicaid/post_surgery_opioid_use/output/table_one_revised.csv", row.names = F)
 

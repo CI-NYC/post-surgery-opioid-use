@@ -69,6 +69,14 @@ moud <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes/c
 # saveRDS(poison_dat, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/poison_wide.rds")
 
 
+# cohort <- cohort |>
+#   select(BENE_ID, PRCDR_CD, followup_start_dt) |>
+#   left_join(months_to_dropout |> select(BENE_ID, enrolled_until)) |>
+#   # left_join(poison |> select(BENE_ID, oud_poison_dt)) |>
+#   left_join(hillary |> select(BENE_ID, oud_hillary_dt)) |>
+#   left_join(oud |> select(BENE_ID, oud_dt)) |>
+#   left_join(moud |> select(BENE_ID, moud_start_dt))
+
 cohort <- cohort |>
   select(BENE_ID, PRCDR_CD, followup_start_dt) |>
   left_join(months_to_dropout |> select(BENE_ID, enrolled_until)) |>
@@ -123,7 +131,7 @@ for (month in 1:4){
 }
 
 
-saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos.rds")
+saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/outcomes/outcomes_wide_6mos.rds")
 
 
 ####### UNCOMMENT BOTTOM PORTION OF NEEDED
@@ -135,14 +143,20 @@ cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/outcomes
 # This should not be allowed, so I changed it, for those who were censored, to overwrite all later values with their last uncensored value.
 
 
-for (i in 1:4){
+censored_1 <- which(cohort$C_1 == 0)
+cohort[censored_1, c("Y2_1","Y2_2","Y2_3","Y2_4",
+                     "Y3_1","Y3_2","Y3_3","Y3_4",
+                     "Y4_1","Y4_2","Y4_3","Y4_4")] <- 0
+
+for (i in 2:4){
   print(paste("Processing month:", i))
 
   tic()
+  
   censor_column <- paste0("C_", i)
-  last_uncensored <- c(paste0("Y2_", i),
-                    paste0("Y3_", i),
-                    paste0("Y4_", i))
+  last_uncensored <- c(paste0("Y2_", i-1),
+                    paste0("Y3_", i-1),
+                    paste0("Y4_", i-1))
 
   censored <- which(cohort[,censor_column] == 0)
 
@@ -157,4 +171,4 @@ for (i in 1:4){
   toc()
 }
 
-saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos.rds")
+saveRDS(cohort, "/mnt/general-data/disability/post_surgery_opioid_use/outcomes/outcomes_wide_6mos_revised.rds")
