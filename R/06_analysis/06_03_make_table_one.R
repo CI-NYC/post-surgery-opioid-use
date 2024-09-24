@@ -167,10 +167,10 @@ days <- paste0(median(df1$days_supplied)," (",
 
 month <- c("0","6","12","18","24")
 number_at_risk <- c(nrow(df1),
-                    sum(df1$C_1),
-                    nrow(df1) - sum(pmax(df1$C_2==0,df1$Y2_1)),
-                    nrow(df1) - sum(pmax(df1$C_3==0,df1$Y2_2)),
-                    nrow(df1) - sum(pmax(df1$C_4==0,df1$Y2_3))
+                    nrow(df1),
+                    nrow(df1) - sum(pmax(df1$C_1==0,df1$Y2_1)),
+                    nrow(df1) - sum(pmax(df1$C_2==0,df1$Y2_2)),
+                    nrow(df1) - sum(pmax(df1$C_3==0,df1$Y2_3))
                     )
 number_of_cases <- c(0,
                      sum(df1$Y2_1),
@@ -183,8 +183,8 @@ number_censored <- c(0,
                      sum(df1$C_2-df1$C_3),
                      sum(df1$C_3-df1$C_4))
 cbind(month,number_at_risk,number_of_cases,number_censored)
-
-
+# 
+# 
 survival_prob <- numeric(length(month))
 survival_prob[1] <- 1
 # Calculate survival probability at each time point
@@ -198,18 +198,18 @@ new_cases <- c()
 cum_inc <- c()
 num_remaining_other <- c(rep(NA, 36))
 
-for (Y in c("Y2","Y3","Y4")){
+for (Y in c("Y2")){
   time_to_outcome <- ifelse(df1[[paste0(Y,"_1")]] == 1, 1,
                             ifelse(df1[[paste0(Y,"_2")]] == 1, 2,
                                    ifelse(df1[[paste0(Y,"_3")]] == 1, 3,
                                           ifelse(df1[[paste0(Y,"_4")]] == 1, 4, Inf))))
-  time_to_censor <- ifelse(df1$C_1 == 0, 0,
-                           ifelse(df1$C_2 == 0, 1,
-                                  ifelse(df1$C_3 == 0, 2,
-                                         ifelse(df1$C_4 == 0, 3, 4))))
+  time_to_censor <- ifelse(df1$C_1 == 0, 1,
+                           ifelse(df1$C_2 == 0, 2,
+                                  ifelse(df1$C_3 == 0, 3,
+                                         ifelse(df1$C_4 == 0, 4, 4))))
   
   # Determine the event status
-  status <- ifelse(time_to_outcome <= time_to_censor, 1, 0)
+  status <- ifelse(time_to_outcome < time_to_censor, 1, 0)
   
   # Determine the time variable
   time <- pmin(time_to_outcome, time_to_censor)
@@ -303,7 +303,7 @@ new_cases <- c()
 cum_inc <- c()
 num_remaining_cs <- c(rep(NA, 36))
 
-for (Y in c("Y2", "Y3", "Y4")){
+for (Y in c("Y2", "Y4", "Y3")){
   time_to_outcome <- ifelse(df2[[paste0(Y,"_1")]] == 1, 1,
                             ifelse(df2[[paste0(Y,"_2")]] == 1, 2,
                                    ifelse(df2[[paste0(Y,"_3")]] == 1, 3,
