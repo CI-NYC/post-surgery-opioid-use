@@ -15,11 +15,11 @@ library(mlr3learners)
 library(mlr3extralearners) 
 library(purrr)
 
-dat_non_c_section <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_non_c_section.rds") |>
+dat_non_c_section <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/final/df_non_c_section.rds") |>
   select(-days_of_continuous_use) |>
   as.data.frame()
 
-dat_only_c_section <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/final/df_only_c_section.rds") |>
+dat_only_c_section <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/final/df_only_c_section.rds") |>
   select(-days_of_continuous_use) |>
   as.data.frame()
 
@@ -217,7 +217,7 @@ lmtp_contrast_and_save <- function(Y, W, data, shifted, shift_name, results_obse
   results_interv <- survival_lmtp_intervention(Y, W, data, shifted, shift_name)
   
   # compare results
-  for (t in 1:tau) {
+  for (t in 1:tau) { 
     results_contrast[[t]] <- lmtp_contrast(results_interv[[t]], ref = results_observ[[t]]) 
   }
   
@@ -225,7 +225,7 @@ lmtp_contrast_and_save <- function(Y, W, data, shifted, shift_name, results_obse
                   results_observ,
                   results_contrast)
   names(results) <- c("intervention", "observed", "contrast")
-  saveRDS(results, file.path("/mnt/general-data/disability/post_surgery_opioid_use/analysis",
+  saveRDS(results, file.path("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/analysis",
                              paste0("lmtp_result_", c_section_identifier, "_", shift_name, "_", Y, ".rds")))
 }
 
@@ -256,7 +256,7 @@ run_lmtp <- function(dat_lmtp, W, c_section_identifier) {
   shift_3 <- shift_data(dat_lmtp, c("days_supplied"))
   # shift_5 <- shift_data(dat_lmtp, c("days_supplied", "days_of_continuous_use"))
   
-  for (Y in c("Y2","Y3","Y4")){
+  for (Y in c("Y2", "Y3","Y4")){
     
     results_observ <- survival_lmtp_observed(Y, W, dat_lmtp)
     
@@ -269,6 +269,6 @@ run_lmtp <- function(dat_lmtp, W, c_section_identifier) {
 }
 
 
-# run_lmtp(dat_  non_c_section, W_non_c_section, "other")
+run_lmtp(dat_non_c_section, W_non_c_section, "other")
 run_lmtp(dat_only_c_section, W_only_c_section, "c-section")
 

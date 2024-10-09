@@ -9,8 +9,8 @@ library(tidyverse)
 library(lmtp)
 library(gridExtra)
 
-load_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/analysis"
-result_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/analysis/plots"
+load_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/analysis"
+result_dir <- "/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/analysis/plots"
 
 
 
@@ -72,10 +72,11 @@ plot_surv <- function(outcome, c_section_identifier){
   
   # plot the survival curves for observed data and intervention
   p <- ggplot(combined_results, aes(x = t, y = estimate)) + 
-    geom_point(aes(colour = Intervention), size = 2) +
+    geom_point(aes(colour = Intervention), size = 3) +
+    geom_errorbar(aes(ymin = conf.low, ymax = conf.high, colour = Intervention), width = 0.3) + 
+    
     # geom_line(aes(colour = Intervention)) +
     # geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = Intervention), alpha = 0.3, show.legend = F) +
-    geom_errorbar(aes(ymin = conf.low, ymax = conf.high, colour = Intervention), width = 0.3) + 
     labs(x = "", y = "Absolute risk", title="(A)") + 
     scale_x_continuous(labels = c("0","6","12","18","24")) +
     scale_y_continuous(labels = scales::label_number(accuracy = 0.0001)) +
@@ -145,17 +146,18 @@ plot_survdiff <- function(outcome, c_section_identifier){
                               mutate(shift = "ii"),
                             combine_contrasts(outcome, "shift_3", c_section_identifier) |>
                               mutate(shift = "iii")
-                            ) |>
+  ) |>
     mutate(Intervention="hypothetical reduction") # This column has no useful meaning whatsoever. It is used in the fake legend because the longest word in the survival plot legend is "hypothetical reduction". Therefore, this will make sure that both legends are the same width.
-
+  
   write.csv(results_contrast, paste0(result_dir, "/lmtp_contrasts_", c_section_identifier, "_", outcome, ".csv"))
   
   # make the plot
   p <- ggplot(results_contrast, aes(x = t, y = theta)) +
     geom_line(aes(x=t, y=c(rep(0,length(theta))), color = Intervention)) + # making a white, unnoticeable line at y=0 for legend hiding purposes
     # geom_line() +
-    geom_point(size = 2) +
+    geom_point(size = 3) +
     geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.3) + 
+    
     geom_hline(yintercept = 0, linetype = "dotted") +
     # geom_ribbon(aes(ymin = conf.low, ymax = conf.high),fill = "grey",alpha = 0.3, show.legend = F) +
     labs(
@@ -170,7 +172,7 @@ plot_survdiff <- function(outcome, c_section_identifier){
           legend.text = element_text(color = "white"), # hide the legend labels
           strip.text = element_text(color = "black"),
           strip.text.x = element_text(size = 14)) +
-    scale_color_manual(values = c("white")) + # making the line defined in the first line of this plot white and hidden.
+    scale_color_manual(values = c("white")) + # making the line defined in the first line of this plot white and hidden. 
     scale_x_continuous(labels = c("0","6","12","18","24")) +
     scale_y_continuous(labels = scales::label_number(accuracy = 0.0001))
   

@@ -152,7 +152,6 @@ for (i in 2:4){
   print(paste("Processing month:", i))
 
   tic()
-  
   censor_column <- paste0("C_", i)
   last_uncensored <- c(paste0("Y2_", i-1),
                     paste0("Y3_", i-1),
@@ -165,9 +164,7 @@ for (i in 2:4){
                                paste0("Y3_", j),
                                paste0("Y4_", j))
     cohort[censored, carry_forward_columns] <- cohort[censored, last_uncensored]
-
   }
-
   toc()
 }
 
