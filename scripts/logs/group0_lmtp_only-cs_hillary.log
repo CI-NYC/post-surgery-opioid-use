@@ -1,0 +1,69 @@
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.3     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.4.3     ✔ tibble    3.2.1
+✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+✔ purrr     1.0.4     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+
+Attaching package: ‘xgboost’
+
+The following object is masked from ‘package:dplyr’:
+
+    slice
+
+Loading required package: Formula
+Loading required package: plotmo
+Loading required package: plotrix
+Loading required package: TeachingDemos
+
+Attaching package: ‘arrow’
+
+The following object is masked from ‘package:lubridate’:
+
+    duration
+
+The following object is masked from ‘package:utils’:
+
+    timestamp
+
+[1] "CF_folds: 4, Version: earth, oud_hillary_period"
+ℹ Working on time 1/4...
+ℹ Working on time 1/4...
+ℹ Working on time 3/4...
+✔ Working on time 4/4... [5.6s]
+
+Loading required package: nnls
+Loading required namespace: earth
+Loading required package: nnls
+Loading required namespace: earth
+Loading required package: nnls
+Loading required namespace: earth
+Loading required package: nnls
+Loading required namespace: earth
+[1] "Wed Aug 13 13:53:10 2025"
+Processing outcome: oud_hillary_period, observed: 377.569 sec elapsed
+ℹ Working on time 1/4...
+ℹ Working on time 1/4...
+ℹ Working on time 3/4...
+✔ Working on time 4/4... [6.1s]
+
+[1] "Wed Aug 13 14:04:33 2025"
+Processing outcome: oud_hillary_period, shift_1: 694.925 sec elapsed
+ℹ Working on time 1/4...
+ℹ Working on time 3/4...
+✔ Working on time 4/4... [5s]
+
+[1] "Wed Aug 13 14:14:25 2025"
+Processing outcome: oud_hillary_period, shift_2: 592.095 sec elapsed
+ℹ Working on time 1/4...
+ℹ Working on time 2/4...
+ℹ Working on time 4/4...
+✔ Working on time 4/4... [5.7s]
+
+[1] "Wed Aug 13 14:26:07 2025"
+Processing outcome: oud_hillary_period, shift_3: 703.028 sec elapsed
+There were 50 or more warnings (use warnings() to see the first 50)

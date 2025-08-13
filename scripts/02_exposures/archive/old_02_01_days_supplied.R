@@ -1,0 +1,57 @@
+# -------------------------------------
+# Script: days_supplied
+# Author: Nick Williams (modified by Anton Hung 05-2024)
+# Purpose: Calculating the number of ays supplied for opioids during the perioperative period
+#          modified from disability/projects/mediation_unsafe_pain_mgmt/01_create_mediators/31_mediator_proportion_days_covered.R
+# Notes:
+# -------------------------------------
+
+library(lubridate)
+library(foreach)
+library(doFuture)
+library(tidyverse)
+
+cohort <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/intermediate/first_surgeries.rds")
+
+# creating date intervals that beneficiaries were covered for opioids
+opioids <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/opioid_data/opioids_for_surgery.rds") |>
+  right_join(cohort[, c("CLM_ID", "surgery_dt", "discharge_dt")], by="CLM_ID") |>
+  mutate(DAYS_SUPPLY = replace_na(DAYS_SUPPLY, 1),
+         rx_int = interval(RX_FILL_DT, pmin(RX_FILL_DT %m+% days(DAYS_SUPPLY),
+                                            discharge_dt %m+% days(14)))) |> # set end date to 1 day after perioperative period in order to properly count days of use in the as.duration equation
+  select(BENE_ID, rx_int) |>
+  group_by(BENE_ID) |> 
+  arrange(BENE_ID, int_start(rx_int)) |> 
+  nest()
+
+days_supplied <- function(data) {
+  dur <- 0
+  current_int <- data$rx_int[1]
+  for (i in 1:nrow(data)) {
+    check <- intersect(current_int, data$rx_int[i + 1])
+    if (is.na(check)) {
+      # if they don't intersect, add the duration of the first interval
+      dur <- dur + as.duration(current_int)
+      current_int <- data$rx_int[i + 1]
+    } else {
+      # if they do intersect, then update current interval as the union
+      current_int <- union(current_int, data$rx_int[i + 1])
+    }
+  }
+  time_length(dur, "days")
+}
+
+plan(multisession, workers = 10)
+
+opioids$days_supplied <- 
+  foreach(x = opioids$data, 
+          .combine = "c",
+          .options.future = list(chunk.size = 1e4)) %dofuture% {
+            days_supplied(x)
+          }
+
+plan(sequential)
+
+opioids <- select(opioids, BENE_ID, days_supplied)
+
+saveRDS(opioids, "/mnt/general-data/disability/post_surgery_opioid_use/opioid_data/surgery_opioid_days_supplied.rds")

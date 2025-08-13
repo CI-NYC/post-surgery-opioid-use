@@ -1,0 +1,59 @@
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.3     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.4.3     ✔ tibble    3.2.1
+✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+✔ purrr     1.0.4     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+
+Attaching package: ‘arrow’
+
+The following object is masked from ‘package:lubridate’:
+
+    duration
+
+The following object is masked from ‘package:utils’:
+
+    timestamp
+
+[1] "CF_folds: 4, Version: earth, oud_period"
+ℹ Working on time 1/4...
+ℹ Working on time 2/4...
+ℹ Working on time 4/4...
+✔ Working on time 4/4... [5.8s]
+
+Loading required package: nnls
+Loading required namespace: earth
+Loading required package: nnls
+Loading required namespace: earth
+Loading required package: nnls
+Loading required namespace: earth
+Loading required package: nnls
+Loading required namespace: earth
+[1] "Wed Aug 13 13:53:10 2025"
+Processing outcome: oud_period, observed: 379.151 sec elapsed
+ℹ Working on time 1/4...
+ℹ Working on time 1/4...
+ℹ Working on time 3/4...
+✔ Working on time 4/4... [6.2s]
+
+[1] "Wed Aug 13 14:07:07 2025"
+Processing outcome: oud_period, shift_1: 852.346 sec elapsed
+ℹ Working on time 1/4...
+ℹ Working on time 1/4...
+ℹ Working on time 3/4...
+✔ Working on time 4/4... [6.1s]
+
+[1] "Wed Aug 13 14:18:32 2025"
+Processing outcome: oud_period, shift_2: 684.994 sec elapsed
+ℹ Working on time 1/4...
+ℹ Working on time 2/4...
+ℹ Working on time 4/4...
+✔ Working on time 4/4... [6.4s]
+
+[1] "Wed Aug 13 14:31:49 2025"
+Processing outcome: oud_period, shift_3: 795.705 sec elapsed
+There were 50 or more warnings (use warnings() to see the first 50)

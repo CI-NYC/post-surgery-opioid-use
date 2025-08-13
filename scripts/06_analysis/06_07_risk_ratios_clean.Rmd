@@ -1,0 +1,119 @@
+
+```{r}
+.libPaths(c("~/libs", .libPaths()))
+
+library(lmtp)
+```
+
+
+```{r}
+lmtp_contrast_modified <- function(..., ref, type = c("additive", "rr", "or")) {
+  fits <- list(...)
+  type <- match.arg(type)
+
+  # assert_lmtp_list(fits)
+  # assert_ref_class(ref)
+  # assert_contrast_type(type, fits, .var.name = "type")
+
+  if (checkmate::test_number(ref)) {
+    cli::cli_alert_danger("Unless {.code ref} is a known constant, standard errors may be anti-conservative!")
+  }
+
+  fits <- lapply(fits, function(x) 1-x$estimate)
+  
+  ref <- 1 - ref$estimate
+
+  ans <- switch(type,
+                "additive" = lapply(fits, function(x) x - ref),
+                "rr" = lapply(fits, function(x) x / ref),
+                "or" = lapply(fits, function(x) (x / (1 - x)) / (ref / (1 - ref))))
+
+  ans <- do.call("rbind", lapply(ans, function(x) ife::tidy(x)))
+  ans$p.value <- pnorm(abs(ans$estimate) / ans$std.error, lower.tail = FALSE) * 2
+  ans$shift <- sapply(fits, function(x) x@x)
+  ans$ref <- ifelse(inherits(ref, "ife::influence_func_estimate"), ref@x, ref)
+  ans <- ans[, c("shift", "ref", "estimate", "std.error", "conf.low", "conf.high", "p.value")]
+
+  structure(list(type = type,
+                 null = ifelse(type == "additive", 0, 1),
+                 estimates = ans),
+            class = "lmtp_contrast")
+}
+```
+
+
+# C-section
+
+```{r}
+result_df <- data.frame()
+
+for (shift in 1:3){
+  results <- readRDS(paste0("/mnt/general-data/disability/post_surgery_opioid_use/analysis/earth/lmtp_result_c-section_shift_",
+                            shift, "_oud_hillary_period.rds"))
+  for (t in 1:4) {
+    result_df <- rbind(result_df, lmtp_contrast_modified(results$intervention[[t]], ref = results$observed[[t]], type="rr")$estimates)
+  }
+}
+
+result_df <- result_df |>
+  mutate(shift = c(rep("i",4),rep("ii",4),rep("iii",4)),
+         t = rep(c(1,2,3,4), 3)) |>
+  select(shift, t, RR = estimate, RR.CI.low = conf.low, RR.CI.high = conf.high)
+         
+  
+result_df
+```
+
+```{r}
+# RD
+
+result <- read.csv("/mnt/general-data/disability/post_surgery_opioid_use/analysis/earth/plots/lmtp_contrasts_c-section_oud_hillary_period.csv")
+result_df <- cbind(result_df, result |> arrange(shift,t) |>
+                     select(RD = theta, RD.CI.low = conf.low, RD.CI.high = conf.high)) |>
+    mutate(across(3:5, ~ round(., 3)),
+           across(6:8, ~ round(., 6)))
+
+write.csv(result_df, "~/medicaid/post_surgery_opioid_use/scripts/06_analysis/c-section_RD_and_RR.csv", row.names = F)
+
+
+```
+
+
+# Non-c-section
+
+```{r}
+result_df <- data.frame()
+
+for (shift in 1:3){
+  results <- readRDS(paste0("/mnt/general-data/disability/post_surgery_opioid_use/analysis/earth/lmtp_result_other_shift_",
+                            shift, "_oud_hillary_period.rds"))
+  for (t in 1:4) {
+    result_df <- rbind(result_df, lmtp_contrast_modified(results$intervention[[t]], ref = results$observed[[t]], type="rr")$estimates)
+  }
+}
+
+result_df <- result_df |>
+  mutate(shift = c(rep("i",4),rep("ii",4),rep("iii",4)),
+         t = rep(c(1,2,3,4), 3)) |>
+  select(shift, t, RR = estimate, RR.CI.low = conf.low, RR.CI.high = conf.high)
+         
+  
+result_df
+
+```
+
+```{r}
+# RD
+
+result <- read.csv("/mnt/general-data/disability/post_surgery_opioid_use/analysis/earth/plots/lmtp_contrasts_other_oud_hillary_period.csv")
+result_df <- cbind(result_df, result |> arrange(shift,t) |>
+                     select(RD = theta, RD.CI.low = conf.low, RD.CI.high = conf.high)) |>
+    mutate(across(3:5, ~ round(., 3)),
+           across(6:8, ~ round(., 6)))
+
+result_df
+
+write.csv(result_df, "~/medicaid/post_surgery_opioid_use/scripts/06_analysis/other_RD_and_RR.csv", row.names = F)
+
+
+```
