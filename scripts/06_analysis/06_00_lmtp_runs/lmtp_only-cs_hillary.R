@@ -26,7 +26,7 @@ source("~/medicaid/post_surgery_opioid_use/R/helpers.R")
 
 # paramaters to modify
 # learners
-sl <- c("SL.mean", "SL.glm", "SL.earth")
+sl <- c("SL.mean", "SL.glm", "SL.xgboost", "SL.earth")
 CF_folds <- 4
 SL_folds <- 2
 version <- "earth"

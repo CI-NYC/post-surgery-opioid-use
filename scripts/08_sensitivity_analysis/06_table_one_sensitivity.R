@@ -7,27 +7,13 @@
 # -------------------------------------
 library(dplyr)
 library(data.table)
-library(survival)
+# library(survival)
 
-df1 <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/final/df_non_c_section.rds")
-# 5:22
+source("~/medicaid/post_surgery_opioid_use/R/helpers.R")
 
-df2 <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/final/df_only_c_section.rds")
-# 5:20
+df1 <- load_data("df_non_c_section.fst", file.path(drv_root, "sensitivity_analysis/final"))
 
-df1_hillary <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/intermediate/hillary_KM.rds") |>
-  filter(BENE_ID %in% df1$BENE_ID)
-df1_moud <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/intermediate/moud_KM.rds") |>
-  filter(BENE_ID %in% df1$BENE_ID)
-df1_oud <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/intermediate/oud_KM.rds") |>
-  filter(BENE_ID %in% df1$BENE_ID)
-
-df2_hillary <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/intermediate/hillary_KM.rds") |>
-  filter(BENE_ID %in% df2$BENE_ID)
-df2_moud <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/intermediate/moud_KM.rds") |>
-  filter(BENE_ID %in% df2$BENE_ID)
-df2_oud <- readRDS("/mnt/general-data/disability/post_surgery_opioid_use/sensitivity_analysis/intermediate/oud_KM.rds") |>
-  filter(BENE_ID %in% df2$BENE_ID)
+df2 <- load_data("df_only_c_section.fst", file.path(drv_root, "sensitivity_analysis/final"))
 
 df1 <- df1 |>
   mutate(sex = NA, .before = SEX_M) |>
@@ -114,8 +100,8 @@ age <- paste0(median(df1$age_enrollment)," (",
               quantile(df1$age_enrollment, 0.25),", ",
               quantile(df1$age_enrollment, 0.75),")")
 
-number <- sapply(df1[,6:30], function(x) sum(x))
-proportion <- sapply(df1[,6:30], function(x) prop.table(table(x))[2])
+number <- sapply(df1[,5:29], function(x) sum(x))
+proportion <- sapply(df1[,5:29], function(x) prop.table(table(x))[2])
 
 number_proportion <- paste0(number, " (", round(proportion*100,2), "\\%)")
 
@@ -124,34 +110,56 @@ length_of_stay_prop <- round(prop.table(length_of_stay_num)*100,2)
 length_of_stay <- paste0(length_of_stay_num, " (", length_of_stay_prop, "\\%)")
 
 # exposures
-mme <- paste0(round(median(df1$mean_daily_dose_mme),1)," (",
-              round(quantile(df1$mean_daily_dose_mme, 0.25),1),", ",
-              round(quantile(df1$mean_daily_dose_mme, 0.75),1),")")
-days <- paste0(median(df1$days_supplied)," (",
-               quantile(df1$days_supplied, 0.25),", ",
-               quantile(df1$days_supplied, 0.75),")")
+mme <- paste0(round(median(df1$exposure_mean_daily_dose_mme),1)," (",
+              round(quantile(df1$exposure_mean_daily_dose_mme, 0.25),1),", ",
+              round(quantile(df1$exposure_mean_daily_dose_mme, 0.75),1),")")
+days <- paste0(median(df1$exposure_days_supply)," (",
+               quantile(df1$exposure_days_supply, 0.25),", ",
+               quantile(df1$exposure_days_supply, 0.75),")")
 
 
-
-new_cases <- c()
-cum_inc <- c()
-num_remaining_other <- c(rep(NA, 36))
-
-list_of_dfs <- list(df1_hillary, df1_moud, df1_oud)
-for (i in seq_along(list_of_dfs)) {
-  df <- list_of_dfs[[i]]
+calculate_KM <- function(data, outcome_name, censor_name) {
+  m <- c(sum(data[[paste0(outcome_name, 1)]], na.rm=T),
+         sum(data[[paste0(outcome_name, 2)]], na.rm=T) - sum(data[[paste0(outcome_name, 1)]], na.rm=T),
+         sum(data[[paste0(outcome_name, 3)]], na.rm=T) - sum(data[[paste0(outcome_name, 2)]], na.rm=T),
+         sum(data[[paste0(outcome_name, 4)]], na.rm=T) - sum(data[[paste0(outcome_name, 3)]], na.rm=T))
+  n <- c(nrow(data),
+         sum(data[[paste0(censor_name, 1)]], na.rm=T) - m[1],
+         sum(data[[paste0(censor_name, 2)]], na.rm=T) - m[1] - m[2],
+         sum(data[[paste0(censor_name, 3)]], na.rm=T) - m[1] - m[2] - m[3])
   
-  surv_obj <- Surv(df$time, df$status)
-  fit <- survfit(surv_obj ~ 1)
+  hazard <- m / n
+  incidence <- cumsum(m)
+  survival_reciprocal <- round((1-(cumprod(1 - hazard)))*100,2)
   
-  new_cases <- c(new_cases, NA, cumsum(fit$n.event[1:4]))
-  cum_inc <- c(cum_inc, NA, 1-fit$surv[1:4])
-  num_remaining_other <- c(num_remaining_other, NA, paste0("(n=",fit$n.risk[1:4],")\\textsuperscript{1}"))
+  
+  stopifnot(all(m <= n, na.rm = TRUE))
+  stopifnot(all(n >= 0))
+  
+  return(list(number_at_risk = n,
+              survival = paste0(incidence," (", survival_reciprocal,"\\%)")))
 }
-outcomes <- paste0(new_cases," (",round(cum_inc*100,2),"\\%)\\textsuperscript{2}")
+
+S_hillary <- calculate_KM(df1, "oud_hillary_period_", "cens_hillary_period_")
+S_moud <- calculate_KM(df1, "moud_period_", "cens_moud_period_")
+S_oud <- calculate_KM(df1, "oud_period_", "cens_oud_period_")
+
+num_remaining_other <- c(rep(NA, 37), 
+                         c(paste0("(n=", S_hillary$number_at_risk,")\\textsuperscript{a}")),
+                         NA,
+                         c(paste0("(n=", S_moud$number_at_risk,")\\textsuperscript{a}")),
+                         NA,
+                         c(paste0("(n=", S_oud$number_at_risk,")\\textsuperscript{a}")))
+
+outcomes <- c(NA,
+              c(paste0(S_hillary$survival, "\\textsuperscript{b}")),
+              NA,
+              c(paste0(S_moud$survival, "\\textsuperscript{b}")),
+              NA,
+              c(paste0(S_oud$survival, "\\textsuperscript{b}"))
+)
+
 other <- c(age, number_proportion, NA, length_of_stay, mme, days, outcomes)
-
-
 
 
 
@@ -161,36 +169,37 @@ age <- paste0(median(df2$age_enrollment)," (",
               quantile(df2$age_enrollment, 0.25),", ",
               quantile(df2$age_enrollment, 0.75),")")
 
-number <- sapply(df2[,6:30], function(x) sum(x))
-proportion <- sapply(df2[,6:30], function(x) prop.table(table(x))[2])
+number <- sapply(df2[,5:29], function(x) sum(x))
+proportion <- sapply(df2[,5:29], function(x) prop.table(table(x))[2])
 
 number_proportion <- paste0(number, " (", round(proportion*100,2), "\\%)")
 
 # exposures
-mme <- paste0(round(median(df2$mean_daily_dose_mme),1)," (",
-              round(quantile(df2$mean_daily_dose_mme, 0.25),1),", ",
-              round(quantile(df2$mean_daily_dose_mme, 0.75),1),")")
-days <- paste0(median(df2$days_supplied)," (",
-               quantile(df2$days_supplied, 0.25),", ",
-               quantile(df2$days_supplied, 0.75),")")
+mme <- paste0(round(median(df2$exposure_mean_daily_dose_mme),1)," (",
+              round(quantile(df2$exposure_mean_daily_dose_mme, 0.25),1),", ",
+              round(quantile(df2$exposure_mean_daily_dose_mme, 0.75),1),")")
+days <- paste0(median(df2$exposure_days_supply)," (",
+               quantile(df2$exposure_days_supply, 0.25),", ",
+               quantile(df2$exposure_days_supply, 0.75),")")
 
-new_cases <- c()
-cum_inc <- c()
-num_remaining_cs <- c(rep(NA, 36))
+S_hillary <- calculate_KM(df2, "oud_hillary_period_", "cens_hillary_period_")
+S_moud <- calculate_KM(df2, "moud_period_", "cens_moud_period_")
+S_oud <- calculate_KM(df2, "oud_period_", "cens_oud_period_")
 
-list_of_dfs <- list(df2_hillary, df2_moud, df2_oud)
-for (i in seq_along(list_of_dfs)) {
-  df <- list_of_dfs[[i]]
-  
-  surv_obj <- Surv(df$time, df$status)
-  fit <- survfit(surv_obj ~ 1)
-  
-  new_cases <- c(new_cases, NA, cumsum(fit$n.event[1:4]))
-  cum_inc <- c(cum_inc, NA, 1-fit$surv[1:4])
-  num_remaining_cs <- c(num_remaining_cs, NA, paste0("(n=",fit$n.risk[1:4],")\\textsuperscript{1}"))
-}
+num_remaining_cs <- c(rep(NA, 37), 
+                      c(paste0("(n=", S_hillary$number_at_risk,")\\textsuperscript{a}")),
+                      NA,
+                      c(paste0("(n=", S_moud$number_at_risk,")\\textsuperscript{a}")),
+                      NA,
+                      c(paste0("(n=", S_oud$number_at_risk,")\\textsuperscript{a}")))
 
-outcomes <- paste0(new_cases," (",round(cum_inc*100,2),"\\%)\\textsuperscript{2}")
+outcomes <- c(NA,
+              c(paste0(S_hillary$survival, "\\textsuperscript{b}")),
+              NA,
+              c(paste0(S_moud$survival, "\\textsuperscript{b}")),
+              NA,
+              c(paste0(S_oud$survival, "\\textsuperscript{b}"))
+)
 
 c_section <- c(age, number_proportion, rep(NA,8), mme, days, outcomes)
 
@@ -202,6 +211,5 @@ table_one <- data.frame(
   c_section = c_section
 )
 
-
-write.csv(table_one, "~/medicaid/post_surgery_opioid_use/output/table_one_KM_sensitivity", row.names = F)
+write.csv(table_one, "~/medicaid/post_surgery_opioid_use/output/table_one_sensitivity_20250811.csv", row.names = F)
 
