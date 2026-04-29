@@ -1,9 +1,9 @@
 # -------------------------------------
 # Script: 02_filter_study_ndc.R
 # Author: Nick Williams
-# Updated:
+# Updated: Anton Hung (August 2025)
 # Purpose: Export unique NDC for beneficiaries during the baseline/exposure time frame. 
-# Notes:
+# Notes: updated to consider only RXL (pharmacy line) data, as OTL (other services line) data generally do not include take-home prescriptions
 # -------------------------------------
 
 library(arrow)

@@ -13,6 +13,7 @@ drv_root <- "/mnt/general-data/disability/post_surgery_opioid_use"
 
 write_data <- function(data, file, dir) {
   write_fst(data, file.path(dir, file))
+  # sys.chmod(data, mode="0666")
 }
 
 load_data <- function(file, dir) {

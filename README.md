@@ -1,8 +1,27 @@
-# post_surgery_opioid_use
-Code related to new opioid use after being prescribed opioids for surgery
+# Risk of Opioid Use Disorder in Surgical Patients with Medicaid and Associations with Prescription Opioid Dose and Duration
+
+Doan LV, Hung AM, Williams NT, Olfson M, Rudolph KE. Risk of Opioid Use Disorder in Surgical Patients with Medicaid and Associations with Prescription Opioid Dose and Duration. J Pain Res. 2025;18:6505-6514
+https://doi.org/10.2147/JPR.S543280
+
+In this study, we examined an opioid-naïve adult Medicaid population who underwent a surgical procedure and received a perioperative opioid prescription. We estimated the association between opioid dose/duration and subsequent risk of new-onset opioid use disorder.
 
 ## Causal question:
 To what extent does an additive increased shift in opioid a) dose (in MME), b) days supplied, and c) days of continuous use increase risk of i) OUD, ii) opioid overdose, and iii) MOUD initiation over the 2 years following surgery?
+
+---
+
+## Repository Structure
+
+| Files and Directories | Description |
+|-----------|----------|
+| [input/](input)     | Codelists (ICD-10, CPT, ATC, NDC) for covariates, exposure, and outcome variables   |
+| [scripts/](scripts)  | Cohort creation  |
+| [R/](R)        | Reusable functions  |
+| [renv.lock](renv.lock)  | List of required package versions |
+
+Raw data not included due to privacy restrictions.
+
+---
 
 ## Cohort definition: 
 
@@ -96,7 +115,7 @@ We estimate the effect of each of the opioid exposure variables on each of the o
 $E(Y_T^{d_n(\mathbf{A}), \Delta=1} - Y_T^{\mathbf{A}, \Delta=1}),$ where $E(Y_T^{\mathbf{A}, \Delta=1})$ denotes the expected value of the counterfactual outcome had the set of prescription opioid variables ($\mathbf{A}$) not been intervened on (i.e., remained as observed) and had no one been censored, and where $E(Y_T^{d_n(\mathbf{A}), \Delta=1})$ denotes the expected value of the counterfactual outcome had the particular opioid variable $A_n$ been intervened on as dictated by the function $d_n(\mathbf{A})$ but the remaining opioid variables stayed as observed and had no one been censored.
 
 # Analysis
-Modified: July 1st
+Modified: July 1st 2024
 
 ### Stratify cohort by cesarean section
 Additional CPT surgery codes were added from the paper, <a href="https://jamanetwork.com/journals/jamainternalmedicine/fullarticle/2532789?utm_campaign=articlePDF&utm_medium=articlePDFlink&utm_source=articlePDF&utm_content=jamainternmed.2016.3298">Incidence of and Risk Factors for Chronic Opioid Use Among Opioid-Naive Patients in the Postoperative Period</a> by Sun et al. Doing so changed the cohort to be ~43% comprised of beneficiaries who underwent a c-section. Although we are already controlling for type of surgery, we are only making the distinction between major and minor. There are so many c-sections that we decided the best approach would be to run our analysis on two strata of the cohort separately: those who underwent a c-section, and those who underwent a different procedure. Among those who had a different procedure, we still include major/minor surgery as a confounder.

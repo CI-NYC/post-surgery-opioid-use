@@ -4,3 +4,6 @@
 .Ruserdata
 output
 archive/
+old/
+07_kaplan_meier_counts/
+09_simulated_dataset/
