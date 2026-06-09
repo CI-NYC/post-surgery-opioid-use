@@ -54,8 +54,8 @@ otl <- select(otl, all_of(otl_vars)) |>
 # e.g.: 
 # BENE_ID          CLM_ID LINE_SRVC_BGN_DT LINE_SRVC_END_DT LINE_PRCDR_CD_SYS LINE_PRCDR_CD
 # <char>          <char>           <Date>           <Date>            <char>        <char>
-#   1: HHHHHHHdA4nd4CA HHHHd4C7eAennB7       2018-08-30       2018-08-30                01         46255
-# 2: HHHHHHHdA4nd4CA HHHHd4C7eAennB7       2018-08-30       2018-08-30                01         46945
+# 1: X              A       2018-08-30       2018-08-30                01         46255
+# 2: X              A       2018-08-30       2018-08-30                01         46945
 
 otl <- otl |>
   group_by(CLM_ID) |>
